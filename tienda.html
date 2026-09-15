@@ -1,134 +1,235 @@
-<script>
-  const API_URL = 'https://repuestoexpress.onrender.com/api';
-  let ultimasSolicitudesConocidas = -1;
-  let audioContext = null;
-
-  // Inicializar o reanudar el contexto de audio del navegador al tocar el botón
-  function activarNotificacionesYSonido() {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!audioContext) {
-        audioContext = new AudioContext();
-      }
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
-      // Reproducir sonido de prueba inmediato
-      probarSonidoRespuesta();
-
-      const btn = document.getElementById('btn-permiso');
-      btn.innerText = '🔔 ¡Alerta Sonora Activada Exitosamente!';
-      btn.style.background = '#d4edda';
-      btn.style.borderColor = '#c3e6cb';
-      btn.style.color = '#155724';
-    } catch (e) {
-      console.log("Error al activar audio:", e);
-    }
-
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }
-
-  // Genera un tono de alerta fuerte directamente sin depender de archivos de audio externos
-  function probarSonidoRespuesta() {
-    if (!audioContext) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioContext = new AudioContext();
-    }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepuestoExpress - Panel de Tiendas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
+    .container { max-width: 550px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .header-logo { text-align: center; margin-bottom: 15px; }
+    .header-logo img { max-width: 150px; height: auto; border-radius: 8px; }
+    h1, h2 { color: #007bff; text-align: center; margin-top: 5px; }
     
-    // Tono 1
-    const osc1 = audioContext.createOscillator();
-    const gain1 = audioContext.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(880, audioContext.currentTime); // Nota A5
-    gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
-    osc1.connect(gain1);
-    gain1.connect(audioContext.destination);
-    osc1.start();
-    osc1.stop(audioContext.currentTime + 0.2);
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; color: white; }
+    .btn-reg { background: #28a745; }
+    .btn-ped { background: #17a2b8; }
+    
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    .btn-submit { background: #28a745; color: white; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    
+    .solicitud-card { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .solicitud-card h3 { margin: 0 0 8px 0; color: #333; font-size: 18px; }
+    .solicitud-card p { margin: 4px 0; font-size: 14px; }
+    .solicitud-card img.foto-adjunta { max-width: 100%; height: auto; max-height: 250px; border-radius: 6px; margin-top: 10px; border: 1px solid #ddd; display: block; }
+    .btn-ws { display: block; background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; margin-top: 12px; text-align: center; }
+    
+    .hidden { display: none; }
+    .alerta-activar { background: #ffecb3; border: 1px solid #ffd54f; color: #856404; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+  </style>
+</head>
+<body>
 
-    // Tono 2 (más agudo para llamar la atención)
-    setTimeout(() => {
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1200, audioContext.currentTime);
-      gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-      osc2.start();
-      osc2.stop(audioContext.currentTime + 0.3);
-    }, 200);
-  }
+  <div class="container">
+    <div class="header-logo">
+      <img src="logo.jpg" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.png';">
+    </div>
 
-  function dispararAlerta(solicitud) {
-    // Reproducir tono generado
-    probarSonidoRespuesta();
+    <h1>Panel de Repuesteras</h1>
 
-    // Notificación en pantalla
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("🚨 ¡NUEVA SOLICITUD DE REPUESTO!", {
-        body: `Cliente busca: ${solicitud.repuesto}\nAuto: ${solicitud.marca} ${solicitud.modelo}`,
-        icon: 'logo.jpg'
-      });
+    <div class="nav-tabs">
+      <button class="tab-btn btn-reg" onclick="mostrarPestana('registro')">Registrar Tienda</button>
+      <button class="tab-btn btn-ped" onclick="mostrarPestana('pedidos')">Ver Pedidos</button>
+    </div>
+
+    <!-- PESTAÑA 1: REGISTRO DE TIENDAS -->
+    <div id="pestana-registro">
+      <h2>Registro de Repuestera</h2>
+      <form id="form-tienda">
+        <label>Nombre del Negocio / Tienda:</label>
+        <input type="text" id="nombre_tienda" placeholder="Ej: AutoRepuestos El Centro" required>
+
+        <label>Ubicación / Ciudad:</label>
+        <input type="text" id="ubicacion_tienda" placeholder="Ej: Vía España, Ciudad de Panamá" required>
+
+        <label>WhatsApp del Vendedor:</label>
+        <input type="text" id="whatsapp_tienda" placeholder="Ej: +50760000000" required>
+
+        <button type="submit" class="btn-submit">Completar Registro</button>
+      </form>
+      <p id="msg-tienda" style="text-align:center; font-weight:bold; margin-top:15px;"></p>
+    </div>
+
+    <!-- PESTAÑA 2: SOLICITUDES EN VIVO CON NOTIFICACIÓN SONORA -->
+    <div id="pestana-pedidos" class="hidden">
+      <h2>Solicitudes en Tiempo Real</h2>
+
+      <!-- BOTÓN PARA ACTIVAR Y PROBAR EL SONIDO -->
+      <div id="btn-permiso" class="alerta-activar" onclick="activarNotificacionesYSonido()">
+        🔊 TOCAR AQUÍ para activar la Alerta Sonora
+      </div>
+
+      <button onclick="cargarSolicitudes()" style="background:#17a2b8; color:white; border:none; margin-bottom:15px; cursor:pointer;">🔄 Actualizar Pedidos</button>
+      <div id="contenedor-solicitudes">Cargando solicitudes...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://repuestoexpress.onrender.com/api';
+    let ultimasSolicitudesConocidas = -1;
+    let audioContext = null;
+
+    function activarNotificacionesYSonido() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext) {
+          audioContext = new AudioCtx();
+        }
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+
+        probarSonidoRespuesta();
+
+        const btn = document.getElementById('btn-permiso');
+        btn.innerText = '🔔 ¡Alerta Sonora Activada!';
+        btn.style.background = '#d4edda';
+        btn.style.borderColor = '#c3e6cb';
+        btn.style.color = '#155724';
+      } catch (e) {
+        console.log("Error al activar audio:", e);
+      }
+
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
     }
-  }
 
-  function mostrarPestana(pestana) {
-    if (pestana === 'registro') {
-      document.getElementById('pestana-registro').classList.remove('hidden');
-      document.getElementById('pestana-pedidos').classList.add('hidden');
-    } else {
-      document.getElementById('pestana-registro').classList.add('hidden');
-      document.getElementById('pestana-pedidos').classList.remove('hidden');
-      cargarSolicitudes();
-    }
-  }
-
-  // Cargar Solicitudes
-  async function cargarSolicitudes() {
-    const contenedor = document.getElementById('contenedor-solicitudes');
-
-    try {
-      const res = await fetch(`${API_URL}/solicitudes`);
-      const solicitudes = await res.json();
-
-      // Si detecta una nueva solicitud
-      if (ultimasSolicitudesConocidas !== -1 && solicitudes.length > ultimasSolicitudesConocidas) {
-        dispararAlerta(solicitudes[0]);
+    function probarSonidoRespuesta() {
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioCtx();
       }
       
-      ultimasSolicitudesConocidas = solicitudes.length;
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, audioContext.currentTime);
+      gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
+      osc1.start();
+      osc1.stop(audioContext.currentTime + 0.2);
 
-      if (solicitudes.length === 0) {
-        contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas por el momento.</p>';
-        return;
-      }
-
-      contenedor.innerHTML = '';
-      solicitudes.forEach(s => {
-        const wsLimpio = s.cliente_whatsapp ? s.cliente_whatsapp.replace(/[^0-9]/g, '') : '';
-        const textoWs = encodeURIComponent(`Hola, vi tu solicitud en RepuestoExpress para el repuesto de ${s.marca} ${s.modelo} (${s.anio}). ¿Aún lo necesitas?`);
-
-        contenedor.innerHTML += `
-          <div class="solicitud-card">
-            <h3>🚗 ${s.marca} ${s.modelo} (${s.anio})</h3>
-            <p><strong>Repuesto:</strong> ${s.repuesto}</p>
-            ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
-            <p><strong>Cliente WhatsApp:</strong> ${s.cliente_whatsapp}</p>
-            ${s.foto_url ? `<p><strong>Foto del repuesto:</strong></p><img src="${s.foto_url}" class="foto-adjunta" alt="Foto repuesto">` : ''}
-            <a href="https://wa.me/${wsLimpio}?text=${textoWs}" target="_blank" class="btn-ws">💬 Contestar por WhatsApp</a>
-          </div>
-        `;
-      });
-    } catch (err) {
-      contenedor.innerHTML = '<p style="color:red; text-align:center;">Error conectando con el servidor.</p>';
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1200, audioContext.currentTime);
+        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.3);
+      }, 200);
     }
-  }
 
-  // Revisar nuevas solicitudes automáticamente cada 7 segundos
-  setInterval(cargarSolicitudes, 7000);
-        </script>
+    function dispararAlerta(solicitud) {
+      probarSonidoRespuesta();
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("🚨 ¡NUEVA SOLICITUD DE REPUESTO!", {
+          body: `Cliente busca: ${solicitud.repuesto}\nAuto: ${solicitud.marca} ${solicitud.modelo}`,
+          icon: 'logo.jpg'
+        });
+      }
+    }
+
+    function mostrarPestana(pestana) {
+      if (pestana === 'registro') {
+        document.getElementById('pestana-registro').classList.remove('hidden');
+        document.getElementById('pestana-pedidos').classList.add('hidden');
+      } else {
+        document.getElementById('pestana-registro').classList.add('hidden');
+        document.getElementById('pestana-pedidos').classList.remove('hidden');
+        cargarSolicitudes();
+      }
+    }
+
+    document.getElementById('form-tienda').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg-tienda');
+      msg.innerText = 'Registrando tienda...';
+
+      const data = {
+        nombre: document.getElementById('nombre_tienda').value,
+        ubicacion: document.getElementById('ubicacion_tienda').value,
+        whatsapp: document.getElementById('whatsapp_tienda').value
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/tiendas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          msg.style.color = 'green';
+          msg.innerText = '¡Tienda registrada exitosamente!';
+          document.getElementById('form-tienda').reset();
+        } else {
+          msg.style.color = 'red';
+          msg.innerText = 'Error al registrar la tienda.';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.innerText = 'Error de conexión.';
+      }
+    });
+
+    async function cargarSolicitudes() {
+      const contenedor = document.getElementById('contenedor-solicitudes');
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes`);
+        const solicitudes = await res.json();
+
+        if (ultimasSolicitudesConocidas !== -1 && solicitudes.length > ultimasSolicitudesConocidas) {
+          dispararAlerta(solicitudes[0]);
+        }
         
+        ultimasSolicitudesConocidas = solicitudes.length;
+
+        if (solicitudes.length === 0) {
+          contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas por el momento.</p>';
+          return;
+        }
+
+        contenedor.innerHTML = '';
+        solicitudes.forEach(s => {
+          const wsLimpio = s.cliente_whatsapp ? s.cliente_whatsapp.replace(/[^0-9]/g, '') : '';
+          const textoWs = encodeURIComponent(`Hola, vi tu solicitud en RepuestoExpress para el repuesto de ${s.marca} ${s.modelo} (${s.anio}). ¿Aún lo necesitas?`);
+
+          contenedor.innerHTML += `
+            <div class="solicitud-card">
+              <h3>🚗 ${s.marca} ${s.modelo} (${s.anio})</h3>
+              <p><strong>Repuesto:</strong> ${s.repuesto}</p>
+              ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
+              <p><strong>Cliente WhatsApp:</strong> ${s.cliente_whatsapp}</p>
+              ${s.foto_url ? `<p><strong>Foto del repuesto:</strong></p><img src="${s.foto_url}" class="foto-adjunta" alt="Foto repuesto">` : ''}
+              <a href="https://wa.me/${wsLimpio}?text=${textoWs}" target="_blank" class="btn-ws">💬 Contestar por WhatsApp</a>
+            </div>
+          `;
+        });
+      } catch (err) {
+        contenedor.innerHTML = '<p style="color:red; text-align:center;">Error conectando con el servidor.</p>';
+      }
+    }
+
+    setInterval(cargarSolicitudes, 7000);
+  </script>
+</body>
+</html>
