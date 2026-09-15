@@ -48,9 +48,9 @@
       <img id="preview-img" alt="Vista previa de la foto">
 
       <label>Tu Número de WhatsApp:</label>
-      <input type="text" id="whatsapp" placeholder="Ej: +50760000000" required>
+      <input type="text" id="whatsapp" placeholder="Ej: 50765675993" required>
 
-      <button type="submit">🚀 Enviar Solicitud a las Tiendas</button>
+      <button type="submit" id="btn-enviar">🚀 Enviar Solicitud a las Tiendas</button>
     </form>
 
     <p id="msg-cliente"></p>
@@ -58,9 +58,9 @@
 
   <script>
     const API_URL = 'https://repuestoexpress.onrender.com/api';
-    let fotoBase64Comprimida = '';
+    let fotoBase64 = null;
 
-    // Función para redimensionar y comprimir fotos antes de subir
+    // Redimensionar e intensificar compresión para que no falle la BD
     document.getElementById('foto_repuesto').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
@@ -70,7 +70,7 @@
           img.src = event.target.result;
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxDimension = 800; // Redimensionar tamaño máximo a 800px
+            const maxDimension = 600; // Máximo 600px para que pese poquísimo
             let width = img.width;
             let height = img.height;
 
@@ -85,21 +85,26 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Exportar compresión JPEG al 70% calidad
-            fotoBase64Comprimida = canvas.toDataURL('image/jpeg', 0.7);
+            // Calidad JPEG al 50%
+            fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
             const imgPreview = document.getElementById('preview-img');
-            imgPreview.src = fotoBase64Comprimida;
+            imgPreview.src = fotoBase64;
             imgPreview.style.display = 'block';
           };
         };
         reader.readAsDataURL(file);
+      } else {
+        fotoBase64 = null;
       }
     });
 
     document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg-cliente');
+      const btn = document.getElementById('btn-enviar');
+      
+      btn.disabled = true;
       msg.style.color = '#333';
       msg.innerText = 'Enviando solicitud...';
 
@@ -108,8 +113,8 @@
         modelo: document.getElementById('modelo').value,
         anio: parseInt(document.getElementById('anio').value),
         repuesto: document.getElementById('repuesto').value,
-        vin: document.getElementById('vin').value,
-        foto_url: fotoBase64Comprimida,
+        vin: document.getElementById('vin').value || '',
+        foto_url: fotoBase64 || null,
         cliente_whatsapp: document.getElementById('whatsapp').value
       };
 
@@ -125,14 +130,17 @@
           msg.innerText = '¡Solicitud enviada con éxito!';
           document.getElementById('form-solicitud').reset();
           document.getElementById('preview-img').style.display = 'none';
-          fotoBase64Comprimida = '';
+          fotoBase64 = null;
         } else {
+          const errData = await res.json().catch(() => ({}));
           msg.style.color = 'red';
-          msg.innerText = 'Error al enviar la solicitud.';
+          msg.innerText = 'Error al enviar: ' + (errData.error || 'Verifica los datos');
         }
       } catch (err) {
         msg.style.color = 'red';
-        msg.innerText = 'Error de conexión.';
+        msg.innerText = 'Error de conexión con el servidor.';
+      } finally {
+        btn.disabled = false;
       }
     });
   </script>
