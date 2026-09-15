@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepuestoExpress - Buscar Repuesto</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
+    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+    h2 { color: #1a2a3a; text-align: center; margin-bottom: 20px; }
+    label { font-weight: bold; font-size: 14px; color: #444; display: block; margin-top: 12px; margin-bottom: 5px; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+    button { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 20px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .tienda-item { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-ws { background: #25d366; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Solicitar Repuesto</h2>
+    <form id="formSolicitud">
+      <label>Marca del Auto:</label>
+      <input type="text" id="marca" placeholder="Ej: Toyota, Nissan" required>
+
+      <label>Modelo:</label>
+      <input type="text" id="modelo" placeholder="Ej: Corolla, Sentra" required>
+
+      <label>Año:</label>
+      <input type="number" id="anio" placeholder="Ej: 2015" required>
+
+      <label>Repuesto que buscas:</label>
+      <textarea id="repuesto" rows="3" placeholder="Ej: Amortiguadores delanteros" required></textarea>
+
+      <label>Tu Número de WhatsApp:</label>
+      <input type="tel" id="clienteWhatsapp" placeholder="Ej: +50760000000" required>
+
+      <button type="submit">Buscar Repuesteras Disponibles</button>
+    </form>
+
+    <div id="resultados" style="margin-top: 25px; display: none;">
+      <h3>Repuesteras disponibles:</h3>
+      <div id="listaTiendas"></div>
+    </div>
+  </div>
+
+  <script>
+    const URL_BACKEND = 'https://repuestoexpress.onrender.com';
+
+    document.getElementById('formSolicitud').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const marca = document.getElementById('marca').value;
+      const modelo = document.getElementById('modelo').value;
+      const anio = document.getElementById('anio').value;
+      const repuesto = document.getElementById('repuesto').value;
+      const clienteWhatsapp = document.getElementById('clienteWhatsapp').value;
+
+      try {
+        const res = await fetch(`${URL_BACKEND}/api/tiendas`);
+        const tiendas = await res.json();
+
+        const lista = document.getElementById('listaTiendas');
+        lista.innerHTML = '';
+
+        if (tiendas.length === 0) {
+          lista.innerHTML = '<p>No hay tiendas registradas aún.</p>';
+        } else {
+          tiendas.forEach(t => {
+            const mensaje = encodeURIComponent(`Hola ${t.nombre}, busco el siguiente repuesto:\n*Marca:* ${marca}\n*Modelo:* ${modelo}\n*Año:* ${anio}\n*Repuesto:* ${repuesto}\n*Mi Contacto:* ${clienteWhatsapp}`);
+            const linkWs = `https://wa.me/${t.whatsapp}?text=${mensaje}`;
+
+            lista.innerHTML += `
+              <div class="tienda-item">
+                <div>
+                  <strong>${t.nombre}</strong><br>
+                  <small>${t.ubicacion || 'Sin ubicación'}</small>
+                </div>
+                <a class="btn-ws" href="${linkWs}" target="_blank">WhatsApp</a>
+              </div>
+            `;
+          });
+        }
+
+        document.getElementById('resultados').style.display = 'block';
+      } catch (err) {
+        alert('Error al conectar con el servidor de Render.');
+      }
+    });
+  </script>
+</body>
+</html>
