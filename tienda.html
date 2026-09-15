@@ -23,6 +23,7 @@
     .solicitud-card { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .solicitud-card h3 { margin: 0 0 8px 0; color: #333; font-size: 18px; }
     .solicitud-card p { margin: 4px 0; font-size: 14px; }
+    .solicitud-card img.foto-adjunta { max-width: 100%; height: auto; max-height: 250px; border-radius: 6px; margin-top: 10px; border: 1px solid #ddd; display: block; }
     .btn-ws { display: block; background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; margin-top: 12px; text-align: center; }
     
     .hidden { display: none; }
@@ -152,6 +153,7 @@
               <p><strong>Repuesto:</strong> ${s.repuesto}</p>
               ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
               <p><strong>Cliente WhatsApp:</strong> ${s.cliente_whatsapp}</p>
+              ${s.foto_url ? `<p><strong>Foto adjunta:</strong></p><img src="${s.foto_url}" class="foto-adjunta" alt="Foto del repuesto">` : ''}
               <a href="https://wa.me/${wsLimpio}?text=${textoWs}" target="_blank" class="btn-ws">💬 Contestar por WhatsApp</a>
             </div>
           `;
@@ -165,4 +167,3 @@
   </script>
 </body>
 </html>
-
