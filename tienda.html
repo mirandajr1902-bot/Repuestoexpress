@@ -3,16 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress - Panel Tiendas</title>
+  <title>RepuestoExpress - Panel de Tiendas</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .container { max-width: 550px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .header-logo { text-align: center; margin-bottom: 15px; }
-    .header-logo img { max-width: 150px; height: auto; }
-    h1, h2 { color: #007bff; text-align: center; }
-    button { background: #17a2b8; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 15px; font-weight: bold; }
-    .solicitud-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fafafa; }
-    .btn-ws { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; width: 100%; box-sizing: border-box; }
+    .header-logo img { max-width: 150px; height: auto; border-radius: 8px; }
+    h1, h2 { color: #007bff; text-align: center; margin-top: 5px; }
+    
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; color: white; }
+    .btn-reg { background: #28a745; }
+    .btn-ped { background: #17a2b8; }
+    
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    .btn-submit { background: #28a745; color: white; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    
+    .solicitud-card { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .solicitud-card h3 { margin: 0 0 8px 0; color: #333; font-size: 18px; }
+    .solicitud-card p { margin: 4px 0; font-size: 14px; }
+    .btn-ws { display: block; background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; margin-top: 12px; text-align: center; }
+    
+    .hidden { display: none; }
+    .estado-servidor { background: #fff3cd; color: #856404; padding: 8px; border-radius: 5px; text-align: center; font-size: 13px; margin-bottom: 15px; display: none; }
   </style>
 </head>
 <body>
@@ -22,16 +36,133 @@
       <img src="logo.jpg" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.png';">
     </div>
 
-    <h1>Panel Repuesteras</h1>
-    <h2>Solicitudes de Clientes en Vivo</h2>
+    <h1>Panel de Repuesteras</h1>
 
-    <button onclick="cargarSolicitudes()">🔄 Actualizar Pedidos</button>
+    <div id="aviso-servidor" class="estado-servidor">⏳ Conectando con el servidor... Por favor espera unos segundos.</div>
 
-    <div id="lista-solicitudes">Cargando solicitudes...</div>
+    <div class="nav-tabs">
+      <button class="tab-btn btn-reg" onclick="mostrarPestana('registro')">Registrar Tienda</button>
+      <button class="tab-btn btn-ped" onclick="mostrarPestana('pedidos')">Ver Pedidos</button>
+    </div>
+
+    <!-- PESTAÑA 1: REGISTRO DE NUEVAS TIENDAS -->
+    <div id="pestana-registro">
+      <h2>Registro de Repuestera</h2>
+      <form id="form-tienda">
+        <label>Nombre del Negocio / Tienda:</label>
+        <input type="text" id="nombre_tienda" placeholder="Ej: AutoRepuestos El Centro" required>
+
+        <label>Ubicación / Ciudad:</label>
+        <input type="text" id="ubicacion_tienda" placeholder="Ej: Vía España, Ciudad de Panamá" required>
+
+        <label>WhatsApp del Vendedor:</label>
+        <input type="text" id="whatsapp_tienda" placeholder="Ej: +50760000000" required>
+
+        <button type="submit" class="btn-submit">Completar Registro</button>
+      </form>
+      <p id="msg-tienda" style="text-align:center; font-weight:bold; margin-top:15px;"></p>
+    </div>
+
+    <!-- PESTAÑA 2: LISTA DE SOLICITUDES EN VIVO -->
+    <div id="pestana-pedidos" class="hidden">
+      <h2>Solicitudes en Tiempo Real</h2>
+      <button onclick="cargarSolicitudes()" style="background:#17a2b8; color:white; border:none; margin-bottom:15px;">🔄 Actualizar Pedidos</button>
+      <div id="contenedor-solicitudes">Cargando solicitudes...</div>
+    </div>
   </div>
 
   <script>
     const API_URL = 'https://repuestoexpress.onrender.com/api';
 
+    function mostrarPestana(pestana) {
+      if (pestana === 'registro') {
+        document.getElementById('pestana-registro').classList.remove('hidden');
+        document.getElementById('pestana-pedidos').classList.add('hidden');
+      } else {
+        document.getElementById('pestana-registro').classList.add('hidden');
+        document.getElementById('pestana-pedidos').classList.remove('hidden');
+        cargarSolicitudes();
+      }
+    }
+
+    // Registrar Tienda
+    document.getElementById('form-tienda').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg-tienda');
+      msg.style.color = '#333';
+      msg.innerText = 'Registrando tienda...';
+
+      const data = {
+        nombre: document.getElementById('nombre_tienda').value,
+        ubicacion: document.getElementById('ubicacion_tienda').value,
+        whatsapp: document.getElementById('whatsapp_tienda').value
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/tiendas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          msg.style.color = 'green';
+          msg.innerText = '¡Tienda registrada exitosamente!';
+          document.getElementById('form-tienda').reset();
+        } else {
+          msg.style.color = 'red';
+          msg.innerText = 'Error al registrar la tienda.';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.innerText = 'Error de conexión con el servidor.';
+      }
+    });
+
+    // Cargar Solicitudes
     async function cargarSolicitudes() {
-      
+      const contenedor = document.getElementById('contenedor-solicitudes');
+      const aviso = document.getElementById('aviso-servidor');
+      contenedor.innerHTML = 'Cargando solicitudes...';
+
+      const timer = setTimeout(() => {
+        aviso.style.display = 'block';
+      }, 3000);
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes`);
+        clearTimeout(timer);
+        aviso.style.display = 'none';
+
+        const solicitudes = await res.json();
+
+        if (solicitudes.length === 0) {
+          contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas por el momento.</p>';
+          return;
+        }
+
+        contenedor.innerHTML = '';
+        solicitudes.forEach(s => {
+          const wsLimpio = s.cliente_whatsapp ? s.cliente_whatsapp.replace(/[^0-9]/g, '') : '';
+          const textoWs = encodeURIComponent(`Hola, vi tu solicitud en RepuestoExpress para el repuesto de ${s.marca} ${s.modelo} (${s.anio}). ¿Aún lo necesitas?`);
+
+          contenedor.innerHTML += `
+            <div class="solicitud-card">
+              <h3>🚗 ${s.marca} ${s.modelo} (${s.anio})</h3>
+              <p><strong>Repuesto:</strong> ${s.repuesto}</p>
+              ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
+              <p><strong>Cliente WhatsApp:</strong> ${s.cliente_whatsapp}</p>
+              <a href="https://wa.me/${wsLimpio}?text=${textoWs}" target="_blank" class="btn-ws">💬 Contestar por WhatsApp</a>
+            </div>
+          `;
+        });
+      } catch (err) {
+        clearTimeout(timer);
+        aviso.style.display = 'none';
+        contenedor.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor. Intenta de nuevo en unos segundos.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
+
