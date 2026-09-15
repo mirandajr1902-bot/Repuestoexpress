@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepuestoExpress - Panel Tiendas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .header-logo { text-align: center; margin-bottom: 15px; }
+    .header-logo img { max-width: 150px; height: auto; }
+    h1, h2 { color: #007bff; text-align: center; }
+    button { background: #17a2b8; color: white; border: none; padding: 10px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 15px; font-weight: bold; }
+    .solicitud-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fafafa; }
+    .btn-ws { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; width: 100%; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-logo">
+      <img src="logo.jpg" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.png';">
+    </div>
+
+    <h1>Panel Repuesteras</h1>
+    <h2>Solicitudes de Clientes en Vivo</h2>
+
+    <button onclick="cargarSolicitudes()">🔄 Actualizar Pedidos</button>
+
+    <div id="lista-solicitudes">Cargando solicitudes...</div>
+  </div>
+
+  <script>
+    const API_URL = 'https://repuestoexpress.onrender.com/api';
+
+    async function cargarSolicitudes() {
+      const contenedor = document.getElementById('lista-solicitudes');
+      contenedor.innerHTML = 'Cargando...';
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes`);
+        const solicitudes = await res.json();
+
+        if (solicitudes.length === 0) {
+          contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas aún.</p>';
+          return;
+        }
+
+        contenedor.innerHTML = '';
+        solicitudes.forEach(s => {
+          // Limpiar número de WhatsApp para el enlace
+          const wsLimpio = s.cliente_whatsapp.replace(/[^0-9]/g, '');
+          const mensajeWs = encodeURIComponent(`Hola, vi tu solicitud en RepuestoExpress para el repuesto de ${s.marca} ${s.modelo} (${s.anio}). ¿Aún lo necesitas?`);
+
+          contenedor.innerHTML += `
+            <div class="solicitud-card">
+              <h3>🚗 ${s.marca} ${s.modelo} (${s.anio})</h3>
+              <p><strong>Repuesto:</strong> ${s.repuesto}</p>
+              ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
+              <p><strong>WhatsApp:</strong> ${s.cliente_whatsapp}</p>
+              <small>📅 Fecha: ${new Date(s.created_at).toLocaleString()}</small>
+              <a href="https://wa.me/${wsLimpio}?text=${mensajeWs}" target="_blank" class="btn-ws">💬 Responder por WhatsApp</a>
+            </div>
+          `;
+        });
+      } catch (err) {
+        contenedor.innerHTML = '<p style="color:red; text-align:center;">Error al cargar las solicitudes.</p>';
+      }
+    }
+
+    // Cargar automáticamente al abrir la página
+    cargarSolicitudes();
+  </script>
+</body>
+</html>
