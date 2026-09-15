@@ -27,7 +27,7 @@
     .btn-ws { display: block; background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; margin-top: 12px; text-align: center; }
     
     .hidden { display: none; }
-    .estado-servidor { background: #fff3cd; color: #856404; padding: 8px; border-radius: 5px; text-align: center; font-size: 13px; margin-bottom: 15px; display: none; }
+    .alerta-activar { background: #e3f2fd; border: 1px solid #90caf9; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -38,8 +38,6 @@
     </div>
 
     <h1>Panel de Repuesteras</h1>
-
-    <div id="aviso-servidor" class="estado-servidor">⏳ Conectando con el servidor... Por favor espera unos segundos.</div>
 
     <div class="nav-tabs">
       <button class="tab-btn btn-reg" onclick="mostrarPestana('registro')">Registrar Tienda</button>
@@ -67,6 +65,11 @@
     <!-- PESTAÑA 2: LISTA DE SOLICITUDES EN VIVO -->
     <div id="pestana-pedidos" class="hidden">
       <h2>Solicitudes en Tiempo Real</h2>
+
+      <div id="btn-permiso" class="alerta-activar" onclick="solicitarPermisoNotificaciones()">
+        🔔 Toca aquí para Activar Alertas Sonoras cuando llegue una solicitud
+      </div>
+
       <button onclick="cargarSolicitudes()" style="background:#17a2b8; color:white; border:none; margin-bottom:15px;">🔄 Actualizar Pedidos</button>
       <div id="contenedor-solicitudes">Cargando solicitudes...</div>
     </div>
@@ -74,6 +77,28 @@
 
   <script>
     const API_URL = 'https://repuestoexpress.onrender.com/api';
+    let ultimasSolicitudesConocidas = 0;
+
+    function solicitarPermisoNotificaciones() {
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            document.getElementById('btn-permiso').innerText = '🔔 ¡Alertas Activadas Exitosamente!';
+            document.getElementById('btn-permiso').style.background = '#d4edda';
+          }
+        });
+      }
+    }
+
+    function reproducirSonidoAlerta() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Tono de aviso
+      osc.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
 
     function mostrarPestana(pestana) {
       if (pestana === 'registro') {
@@ -90,7 +115,6 @@
     document.getElementById('form-tienda').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg-tienda');
-      msg.style.color = '#333';
       msg.innerText = 'Registrando tienda...';
 
       const data = {
@@ -116,29 +140,32 @@
         }
       } catch (err) {
         msg.style.color = 'red';
-        msg.innerText = 'Error de conexión con el servidor.';
+        msg.innerText = 'Error de conexión.';
       }
     });
 
-    // Cargar Solicitudes
+    // Cargar Solicitudes y verificar si hay nuevas
     async function cargarSolicitudes() {
       const contenedor = document.getElementById('contenedor-solicitudes');
-      const aviso = document.getElementById('aviso-servidor');
-      contenedor.innerHTML = 'Cargando solicitudes...';
-
-      const timer = setTimeout(() => {
-        aviso.style.display = 'block';
-      }, 3000);
 
       try {
         const res = await fetch(`${API_URL}/solicitudes`);
-        clearTimeout(timer);
-        aviso.style.display = 'none';
-
         const solicitudes = await res.json();
 
+        // Notificación sonora/push si entra una nueva solicitud
+        if (ultimasSolicitudesConocidas !== 0 && solicitudes.length > ultimasSolicitudesConocidas) {
+          reproducirSonidoAlerta();
+          if (Notification.permission === "granted") {
+            new Notification("🚨 ¡Nueva Solicitud de Repuesto!", {
+              body: `Cliente busca: ${solicitudes[0].repuesto} para ${solicitudes[0].marca} ${solicitudes[0].modelo}`,
+              icon: 'logo.jpg'
+            });
+          }
+        }
+        ultimasSolicitudesConocidas = solicitudes.length;
+
         if (solicitudes.length === 0) {
-          contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas por el momento.</p>';
+          contenedor.innerHTML = '<p style="text-align:center;">No hay solicitudes registradas.</p>';
           return;
         }
 
@@ -153,17 +180,18 @@
               <p><strong>Repuesto:</strong> ${s.repuesto}</p>
               ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
               <p><strong>Cliente WhatsApp:</strong> ${s.cliente_whatsapp}</p>
-              ${s.foto_url ? `<p><strong>Foto adjunta:</strong></p><img src="${s.foto_url}" class="foto-adjunta" alt="Foto del repuesto">` : ''}
+              ${s.foto_url ? `<p><strong>Foto del repuesto:</strong></p><img src="${s.foto_url}" class="foto-adjunta" alt="Foto repuesto">` : ''}
               <a href="https://wa.me/${wsLimpio}?text=${textoWs}" target="_blank" class="btn-ws">💬 Contestar por WhatsApp</a>
             </div>
           `;
         });
       } catch (err) {
-        clearTimeout(timer);
-        aviso.style.display = 'none';
-        contenedor.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor. Intenta de nuevo en unos segundos.</p>';
+        contenedor.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con el servidor.</p>';
       }
     }
+
+    // Consultar automáticamente cada 10 segundos
+    setInterval(cargarSolicitudes, 10000);
   </script>
 </body>
 </html>
