@@ -3,109 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress - Plataforma Oficial</title>
+  <title>RepuestoExpress - Solicitar Repuesto</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .header-logo { text-align: center; margin-bottom: 15px; }
-    .header-logo img { max-width: 180px; height: auto; border-radius: 8px; }
-    h1, h2 { color: #007bff; text-align: center; margin-top: 5px; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, select, textarea, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-    button { background: #28a745; color: white; border: none; font-size: 16px; margin-top: 15px; cursor: pointer; }
-    button:hover { background: #218838; }
-    .nav { display: flex; justify-content: space-around; margin-bottom: 20px; }
-    .nav button { background: #007bff; width: 45%; }
-    .solicitud-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background: #fafafa; }
-    .hidden { display: none; }
-    .fotos-container { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px dashed #007bff; }
+    .header-logo img { max-width: 160px; height: auto; border-radius: 8px; }
+    h1 { color: #007bff; text-align: center; margin-top: 5px; font-size: 24px; }
+    label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; transition: background 0.3s; }
+    button:hover { background: #0056b3; }
+    #msg-cliente { text-align: center; font-weight: bold; margin-top: 15px; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- LOGO -->
     <div class="header-logo">
       <img src="logo.jpg" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.png';">
     </div>
 
-    <h1>RepuestoExpress</h1>
-    
-    <div class="nav">
-      <button onclick="verSeccion('cliente')">Solicitar Repuesto</button>
-      <button onclick="verSeccion('tienda')">Panel Tiendas</button>
-    </div>
+    <h1>Solicita tu Repuesto</h1>
 
-    <!-- SECCIÓN CLIENTE -->
-    <div id="seccion-cliente">
-      <h2>Enviar Solicitud de Repuesto</h2>
-      <form id="form-solicitud">
-        <label>Marca:</label>
-        <input type="text" id="marca" required placeholder="Ej: Toyota">
+    <form id="form-solicitud">
+      <label>Marca del Auto:</label>
+      <input type="text" id="marca" placeholder="Ej: Toyota, Nissan, Hyundai" required>
 
-        <label>Modelo:</label>
-        <input type="text" id="modelo" required placeholder="Ej: Corolla">
+      <label>Modelo del Auto:</label>
+      <input type="text" id="modelo" placeholder="Ej: Corolla, Sentra, Tucson" required>
 
-        <label>Año:</label>
-        <input type="text" id="anio" required placeholder="Ej: 2018">
+      <label>Año:</label>
+      <input type="number" id="anio" placeholder="Ej: 2018" required>
 
-        <label>N° VIN / Chasis (Opcional):</label>
-        <input type="text" id="vin" placeholder="Ej: 1HGCR2F83HA000000">
+      <label>Repuesto que buscas:</label>
+      <input type="text" id="repuesto" placeholder="Ej: Amortiguadores delanteros, Espejo" required>
 
-        <label>Repuesto Necesitado:</label>
-        <textarea id="repuesto" required placeholder="Describe el repuesto que necesitas..."></textarea>
+      <label>Número de Chasis / VIN (Opcional):</label>
+      <input type="text" id="vin" placeholder="Para repuestos muy específicos">
 
-        <!-- SECCIÓN FOTOS DE LA PIEZA -->
-        <div class="fotos-container">
-          <label style="margin-top: 0;">📸 Fotos de la Pieza (Hasta 3 fotos):</label>
-          <input type="file" id="foto1" accept="image/*" capture="environment">
-          <input type="file" id="foto2" accept="image/*" capture="environment">
-          <input type="file" id="foto3" accept="image/*" capture="environment">
-        </div>
+      <label>Tu Número de WhatsApp:</label>
+      <input type="text" id="whatsapp" placeholder="Ej: +50760000000" required>
 
-        <label>Tu WhatsApp de Contacto:</label>
-        <input type="text" id="cliente_whatsapp" required placeholder="Ej: +50760000000">
+      <button type="submit">🚀 Enviar Solicitud a las Tiendas</button>
+    </form>
 
-        <button type="submit">Enviar Solicitud</button>
-      </form>
-      <p id="msg-cliente" style="text-align:center; font-weight:bold;"></p>
-    </div>
-
-    <!-- SECCIÓN TIENDAS / DASHBOARD -->
-    <div id="seccion-tienda" class="hidden">
-      <h2>Solicitudes en Tiempo Real</h2>
-      <button onclick="cargarSolicitudes()" style="background:#17a2b8; margin-bottom: 15px;">🔄 Actualizar Solicitudes</button>
-      <div id="lista-solicitudes">Cargando solicitudes...</div>
-    </div>
+    <p id="msg-cliente"></p>
   </div>
 
   <script>
     const API_URL = 'https://repuestoexpress.onrender.com/api';
 
-    function verSeccion(seccion) {
-      document.getElementById('seccion-cliente').classList.add('hidden');
-      document.getElementById('seccion-tienda').classList.add('hidden');
-      
-      if (seccion === 'cliente') {
-        document.getElementById('seccion-cliente').classList.remove('hidden');
-      } else {
-        document.getElementById('seccion-tienda').classList.remove('hidden');
-        cargarSolicitudes();
-      }
-    }
-
     document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg-cliente');
-      msg.innerText = 'Enviando...';
+      msg.style.color = '#333';
+      msg.innerText = 'Enviando solicitud...';
 
       const data = {
         marca: document.getElementById('marca').value,
         modelo: document.getElementById('modelo').value,
-        anio: document.getElementById('anio').value,
-        vin: document.getElementById('vin').value,
+        anio: parseInt(document.getElementById('anio').value),
         repuesto: document.getElementById('repuesto').value,
-        cliente_whatsapp: document.getElementById('cliente_whatsapp').value
+        vin: document.getElementById('vin').value,
+        cliente_whatsapp: document.getElementById('whatsapp').value
       };
 
       try {
@@ -117,47 +78,18 @@
 
         if (res.ok) {
           msg.style.color = 'green';
-          msg.innerText = '¡Solicitud enviada con éxito!';
+          msg.innerText = '¡Solicitud enviada con éxito! Las tiendas registradas la recibirán pronto.';
           document.getElementById('form-solicitud').reset();
         } else {
           msg.style.color = 'red';
-          msg.innerText = 'Error al enviar la solicitud.';
+          msg.innerText = 'Error al enviar la solicitud. Intenta nuevamente.';
         }
       } catch (err) {
         msg.style.color = 'red';
         msg.innerText = 'Error de conexión con el servidor.';
       }
     });
-
-    async function cargarSolicitudes() {
-      const contenedor = document.getElementById('lista-solicitudes');
-      contenedor.innerHTML = 'Cargando...';
-
-      try {
-        const res = await fetch(`${API_URL}/solicitudes`);
-        const solicitudes = await res.json();
-
-        if (solicitudes.length === 0) {
-          contenedor.innerHTML = '<p>No hay solicitudes registradas aún.</p>';
-          return;
-        }
-
-        contenedor.innerHTML = '';
-        solicitudes.forEach(s => {
-          contenedor.innerHTML += `
-            <div class="solicitud-card">
-              <h3>${s.marca} ${s.modelo} (${s.anio})</h3>
-              <p><strong>Repuesto:</strong> ${s.repuesto}</p>
-              ${s.vin ? `<p><strong>VIN:</strong> ${s.vin}</p>` : ''}
-              <p><strong>WhatsApp Cliente:</strong> ${s.cliente_whatsapp}</p>
-              <small>Fecha: ${new Date(s.created_at).toLocaleString()}</small>
-            </div>
-          `;
-        });
-      } catch (err) {
-        contenedor.innerHTML = '<p style="color:red;">Error al cargar las solicitudes.</p>';
-      }
-    }
   </script>
+
 </body>
 </html>
