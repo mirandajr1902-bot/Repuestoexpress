@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador - RepuestoExpress</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #eef2f5; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 900px; margin: auto; margin-bottom: 20px; }
+    input { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+    button { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #f8f9fa; }
+    .btn-toggle { background: #007bff; font-size: 12px; padding: 5px 10px; }
+    .btn-off { background: #dc3545; }
+  </style>
+</head>
+<body>
+
+  <!-- REGISTRAR TIENDA -->
+  <div class="card">
+    <h2>Registrar Nueva Tienda</h2>
+    <form id="formRegTienda">
+      <input type="text" id="nombre" placeholder="Nombre del Negocio" required>
+      <input type="email" id="correo" placeholder="Correo Electrónico" required>
+      <input type="tel" id="whatsapp" placeholder="Número de WhatsApp" required>
+      <input type="text" id="ubicacion" placeholder="Ubicación (Ej: Ciudad de Panamá)" required>
+      <input type="password" id="password" placeholder="Contraseña de acceso" required>
+      <button type="submit" style="margin-top:10px;">Registrar Tienda</button>
+    </form>
+  </div>
+
+  <!-- LISTADO DE TIENDAS -->
+  <div class="card">
+    <h2>Listado de Tiendas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Negocio</th>
+          <th>Correo</th>
+          <th>WhatsApp</th>
+          <th>Ubicación</th>
+          <th>Estado Cotizar</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tablaTiendas"></tbody>
+    </table>
+  </div>
+
+  <!-- LISTADO DE CLIENTES -->
+  <div class="card">
+    <h2>Listado de Clientes Registrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>WhatsApp</th>
+          <th>Fecha Registro</th>
+        </tr>
+      </thead>
+      <tbody id="tablaClientes"></tbody>
+    </table>
+  </div>
+
+  <script>
+    document.getElementById('formRegTienda').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/admin/tiendas', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          nombre: document.getElementById('nombre').value,
+          correo: document.getElementById('correo').value,
+          whatsapp: document.getElementById('whatsapp').value,
+          ubicacion: document.getElementById('ubicacion').value,
+          password: document.getElementById('password').value
+        })
+      });
+      const data = await res.json();
+      if(data.success) {
+        alert('Tienda registrada exitosamente');
+        e.target.reset();
+        cargarDatos();
+      } else {
+        alert(data.error);
+      }
+    });
+
+    async function cargarDatos() {
+      const res = await fetch('/api/admin/datos');
+      const data = await res.json();
+
+      // Renderizar Tiendas
+      const bodyTiendas = document.getElementById('tablaTiendas');
+      bodyTiendas.innerHTML = '';
+      data.tiendas.forEach(t => {
+        bodyTiendas.innerHTML += `
+          <tr>
+            <td><strong>${t.nombre}</strong></td>
+            <td>${t.correo}</td>
+            <td>${t.whatsapp}</td>
+            <td>${t.ubicacion}</td>
+            <td><span style="color: ${t.activa ? 'green' : 'red'}; font-weight:bold;">${t.activa ? 'ACTIVO' : 'INACTIVO'}</span></td>
+            <td>
+              <button class="btn-toggle ${t.activa ? 'btn-off' : ''}" onclick="toggleEstado('${t.id}', ${!t.activa})">
+                ${t.activa ? 'Desactivar Cotizaciones' : 'Activar Cotizaciones'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      // Renderizar Clientes
+      const bodyClientes = document.getElementById('tablaClientes');
+      bodyClientes.innerHTML = '';
+      data.clientes.forEach(c => {
+        bodyClientes.innerHTML += `
+          <tr>
+            <td>${c.whatsapp}</td>
+            <td>${c.fechaRegistro}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function toggleEstado(id, nuevoEstado) {
+      await fetch(`/api/admin/tiendas/${id}/estado`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ activa: nuevoEstado })
+      });
+      cargarDatos();
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>
