@@ -1,88 +1,53 @@
 const express = require('express');
-const http = require('http');
-const path = require('path');
-const { Server } = require('socket.io');
-const { createClient } = require('@supabase/supabase-js');
+const cors = require('cors');
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Habilitar CORS para permitir peticiones desde el frontend
+app.use(cors());
 
-app.use(express.static(__dirname));
-app.use(express.static(path.join(__dirname, '..')));
+// Configurar el límite del parser de JSON a 10MB (Soporta imágenes en Base64)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
-});
-
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://tu-proyecto.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'tu-anon-key';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// API para registrar tiendas
-app.post('/api/registrar-tienda', async (req, res) => {
+// Ruta principal para recibir solicitudes de repuestos
+app.post('/api/solicitudes', async (req, res) => {
   try {
-    // Acepta diferentes nombres de variables del formulario HTML
-    const nombre = req.body.nombre || req.body.nombreNegocio || req.body.tienda;
-    const ubicacion = req.body.ubicacion || req.body.ciudad || req.body.ub;
-    const whatsapp = req.body.whatsapp || req.body.telefono || req.body.wh;
+    const { marca, modelo, anio, repuesto, vin, foto_url, cliente_whatsapp } = req.body;
 
-    console.log("Datos recibidos del formulario:", { nombre, ubicacion, whatsapp });
-
-    if (!nombre || !ubicacion || !whatsapp) {
+    // Validación básica de campos requeridos
+    if (!marca || !modelo || !anio || !repuesto || !cliente_whatsapp) {
       return res.status(400).json({ 
-        success: false, 
-        message: 'Todos los campos son requeridos. Verifica el HTML.' 
+        error: 'Por favor completa todos los campos obligatorios.' 
       });
     }
 
-    // Inserción en Supabase con los nombres exactos de la tabla
-    const { data, error } = await supabase
-      .from('tiendas')
-      .insert([{ 
-        nombre: nombre, 
-        ubicacion: ubicacion, 
-        whatsapp: whatsapp, 
-        estado: 'pendiente' 
-      }]);
+    // Registro en consola para verificación
+    console.log('Solicitud recibida exitosamente:', {
+      marca,
+      modelo,
+      anio,
+      repuesto,
+      vin,
+      tieneFoto: Boolean(foto_url),
+      cliente_whatsapp
+    });
 
-    if (error) {
-      console.error('Error Supabase al insertar:', error);
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    // Respuesta exitosa
+    return res.status(200).json({ 
+      message: 'Solicitud enviada con éxito' 
+    });
 
-    io.emit('nueva-tienda', { nombre, ubicacion, whatsapp });
-    return res.json({ success: true, message: 'Tienda registrada con éxito' });
-
-  } catch (err) {
-    console.error('Error Servidor:', err);
-    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
+    return res.status(500).json({ 
+      error: 'Error interno del servidor al procesar la solicitud' 
+    });
   }
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'index.html'), (err) => {
-    if (err) res.sendFile(path.resolve(__dirname, '../index.html'));
-  });
-});
-
-app.get('/tienda.html', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'tienda.html'), (err) => {
-    if (err) res.sendFile(path.resolve(__dirname, '../tienda.html'));
-  });
-});
-
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'admin.html'), (err) => {
-    if (err) res.sendFile(path.resolve(__dirname, '../admin.html'));
-  });
-});
-
-io.on('connection', (socket) => {
-  console.log('Cliente conectado:', socket.id);
-});
-
+// Puerto dinámico para Render / Producción
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor activo en el puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor de RepuestoExpress ejecutándose en el puerto ${PORT}`);
+});
