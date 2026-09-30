@@ -9,7 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos desde la carpeta actual y la carpeta padre
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, '..')));
 
@@ -18,38 +17,51 @@ const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// Configuración de Supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://tu-proyecto.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'tu-anon-key';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// API de Registro
+// API para registrar tiendas
 app.post('/api/registrar-tienda', async (req, res) => {
   try {
-    const { nombre, ubicacion, whatsapp } = req.body;
+    // Acepta diferentes nombres de variables del formulario HTML
+    const nombre = req.body.nombre || req.body.nombreNegocio || req.body.tienda;
+    const ubicacion = req.body.ubicacion || req.body.ciudad || req.body.ub;
+    const whatsapp = req.body.whatsapp || req.body.telefono || req.body.wh;
+
+    console.log("Datos recibidos del formulario:", { nombre, ubicacion, whatsapp });
 
     if (!nombre || !ubicacion || !whatsapp) {
-      return res.status(400).json({ success: false, message: 'Todos los campos son requeridos' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Todos los campos son requeridos. Verifica el HTML.' 
+      });
     }
 
+    // Inserción en Supabase con los nombres exactos de la tabla
     const { data, error } = await supabase
       .from('tiendas')
-      .insert([{ nombre, ubicacion, whatsapp, estado: 'pendiente' }]);
+      .insert([{ 
+        nombre: nombre, 
+        ubicacion: ubicacion, 
+        whatsapp: whatsapp, 
+        estado: 'pendiente' 
+      }]);
 
     if (error) {
-      console.error('Error Supabase:', error);
-      return res.status(500).json({ success: false, message: 'Error en base de datos' });
+      console.error('Error Supabase al insertar:', error);
+      return res.status(500).json({ success: false, message: error.message });
     }
 
     io.emit('nueva-tienda', { nombre, ubicacion, whatsapp });
     return res.json({ success: true, message: 'Tienda registrada con éxito' });
+
   } catch (err) {
     console.error('Error Servidor:', err);
-    return res.status(500).json({ success: false, message: 'Error de servidor' });
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });
 
-// Servir las páginas HTML
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'index.html'), (err) => {
     if (err) res.sendFile(path.resolve(__dirname, '../index.html'));
@@ -73,4 +85,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));
+server.listen(PORT, () => console.log(`Servidor activo en el puerto ${PORT}`));
