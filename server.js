@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 
 const app = express();
@@ -11,15 +12,24 @@ const io = new Server(server, {
   }
 });
 
-// Habilitar la lectura de archivos HTML, CSS e imágenes
+// Sirve archivos estáticos desde la raíz del proyecto y desde la carpeta actual
+app.use(express.static(path.join(__dirname, '..')));
 app.use(express.static(__dirname));
 
-// Ruta principal abre index.html
+// Rutas explícitas para las páginas principal, tienda y admin
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-// Eventos de Socket.io
+app.get('/tienda.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../tienda.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../admin.html'));
+});
+
+// Configuración de Socket.io
 io.on('connection', (socket) => {
   console.log('Un cliente se ha conectado:', socket.id);
 
