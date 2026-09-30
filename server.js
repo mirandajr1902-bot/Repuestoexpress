@@ -6,14 +6,18 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Permite conexiones desde cualquier origen
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
 
+// *** AGREGAR ESTA LÍNEA AQUÍ ***
+// Sirve los archivos HTML (index.html, tienda.html, admin.html, etc.)
+app.use(express.static(__dirname));
+
 // Ruta básica de prueba
 app.get('/', (req, res) => {
-  res.send('Servidor corriendo correctamente');
+  res.sendFile(__dirname + '/index.html');
 });
 
 // Configuración de eventos de Socket.io
