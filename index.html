@@ -60,7 +60,7 @@
     const API_URL = 'https://repuestoexpress.onrender.com/api';
     let fotoBase64 = null;
 
-    // Redimensionar e intensificar compresión para que no falle la BD
+    // Redimensionar e intensificar compresión para que no sobrecargue el envío
     document.getElementById('foto_repuesto').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
@@ -70,7 +70,7 @@
           img.src = event.target.result;
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxDimension = 600; // Máximo 600px para que pese poquísimo
+            const maxDimension = 600; // Máximo 600px para mantener un peso liviano
             let width = img.width;
             let height = img.height;
 
@@ -85,7 +85,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Calidad JPEG al 50%
+            // Compresión JPEG al 50%
             fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
             const imgPreview = document.getElementById('preview-img');
@@ -109,13 +109,13 @@
       msg.innerText = 'Enviando solicitud...';
 
       const data = {
-        marca: document.getElementById('marca').value,
-        modelo: document.getElementById('modelo').value,
+        marca: document.getElementById('marca').value.trim(),
+        modelo: document.getElementById('modelo').value.trim(),
         anio: parseInt(document.getElementById('anio').value),
-        repuesto: document.getElementById('repuesto').value,
-        vin: document.getElementById('vin').value || '',
+        repuesto: document.getElementById('repuesto').value.trim(),
+        vin: document.getElementById('vin').value.trim() || '',
         foto_url: fotoBase64 || null,
-        cliente_whatsapp: document.getElementById('whatsapp').value
+        cliente_whatsapp: document.getElementById('whatsapp').value.trim()
       };
 
       try {
@@ -132,9 +132,20 @@
           document.getElementById('preview-img').style.display = 'none';
           fotoBase64 = null;
         } else {
-          const errData = await res.json().catch(() => ({}));
+          // Lectura detallada del error recibido
+          const errorText = await res.text();
+          let errorMessage = 'Verifica los datos';
+          try {
+            const errData = JSON.parse(errorText);
+            errorMessage = errData.error || errData.message || errorMessage;
+          } catch (e) {
+            if (res.status === 413) {
+              errorMessage = 'La imagen es demasiado pesada para el servidor.';
+            }
+          }
+          
           msg.style.color = 'red';
-          msg.innerText = 'Error al enviar: ' + (errData.error || 'Verifica los datos');
+          msg.innerText = 'Error al enviar: ' + errorMessage;
         }
       } catch (err) {
         msg.style.color = 'red';
