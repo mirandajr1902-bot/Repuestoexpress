@@ -11,16 +11,15 @@ const io = new Server(server, {
   }
 });
 
-// *** AGREGAR ESTA LÍNEA AQUÍ ***
-// Sirve los archivos HTML (index.html, tienda.html, admin.html, etc.)
+// Habilitar la lectura de archivos HTML, CSS e imágenes
 app.use(express.static(__dirname));
 
-// Ruta básica de prueba
+// Ruta principal abre index.html
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-// Configuración de eventos de Socket.io
+// Eventos de Socket.io
 io.on('connection', (socket) => {
   console.log('Un cliente se ha conectado:', socket.id);
 
@@ -29,7 +28,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Render asigna dinámicamente el puerto mediante process.env.PORT
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
