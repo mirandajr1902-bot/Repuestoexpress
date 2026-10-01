@@ -9,189 +9,143 @@ app.use(express.static(__dirname));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// --- BASE DE DATOS EN MEMORIA ---
+// BBDD en Memoria
 let tiendas = [
   { id: 1, email: "tienda@ejemplo.com", password: "123", nombre: "AutoRepuestos Express", activa: true },
   { id: 2, email: "ventas@misuperrepuesto.com", password: "123", nombre: "Mi Super Repuesto", activa: true }
 ];
 
 let solicitudes = [];
-let mensajesChat = [];
+let cotizaciones = []; // { id, solicitudId, tiendaId, tiendaNombre, precio, estado: 'Pendiente'|'Aceptada', metodoEntrega: null }
+let mensajesChat = []; // { id, cotizacionId, remitente, texto, fecha }
 
-// --- RUTAS DE NAVEGACIÓN (PÁGINAS HTML) ---
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Páginas HTML
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/tienda.html', (req, res) => res.sendFile(path.join(__dirname, 'tienda.html')));
+app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
-app.get('/tienda.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'tienda.html'));
-});
-
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-// ======================================================
-// 1. RUTAS CLIENTE
-// ======================================================
+// --- RUTAS CLIENTE ---
 app.post('/api/solicitudes', (req, res) => {
-  try {
-    const { marca, modelo, anio, repuesto, vin, foto_url, cliente_whatsapp } = req.body;
-
-    if (!marca || !modelo || !anio || !repuesto || !cliente_whatsapp) {
-      return res.status(400).json({ error: 'Por favor completa todos los campos requeridos.' });
-    }
-
-    const nuevaSolicitud = {
-      id: Date.now(),
-      marca,
-      modelo,
-      anio,
-      repuesto,
-      vin: vin || '',
-      foto_url: foto_url || null,
-      cliente_whatsapp,
-      estado: 'Pendiente',
-      tiendaAsignada: null,
-      fecha: new Date().toISOString()
-    };
-
-    solicitudes.unshift(nuevaSolicitud);
-    return res.status(200).json({ message: 'Solicitud enviada con éxito', solicitud: nuevaSolicitud });
-
-  } catch (error) {
-    return res.status(500).json({ error: 'Error interno en el servidor' });
+  const { marca, modelo, anio, repuesto, vin, foto_url, cliente_whatsapp } = req.body;
+  if (!marca || !modelo || !anio || !repuesto || !cliente_whatsapp) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios' });
   }
+
+  const nueva = {
+    id: Date.now(),
+    marca, modelo, anio, repuesto, vin: vin || '', foto_url: foto_url || null,
+    cliente_whatsapp, fecha: new Date().toISOString()
+  };
+  solicitudes.unshift(nueva);
+  res.json({ message: 'Solicitud creada', solicitud: nueva });
 });
 
-app.get('/api/solicitudes', (req, res) => {
-  return res.json(solicitudes);
+app.get('/api/solicitudes/cliente/:whatsapp', (req, res) => {
+  const misSolicitudes = solicitudes.filter(s => s.cliente_whatsapp === req.params.whatsapp);
+  res.json(misSolicitudes);
 });
 
-app.get('/api/solicitudes/:id', (req, res) => {
-  const solicitud = solicitudes.find(s => s.id == req.params.id);
-  if (!solicitud) return res.status(404).json({ error: 'Solicitud no encontrada' });
-  return res.json(solicitud);
+app.get('/api/cotizaciones/solicitud/:solicitudId', (req, res) => {
+  const cots = cotizaciones.filter(c => c.solicitudId == req.params.solicitudId);
+  res.json(cots);
 });
 
-// ======================================================
-// 2. RUTAS TIENDAS
-// ======================================================
+// Cliente acepta cotización
+app.post('/api/cotizaciones/:id/aceptar', (req, res) => {
+  const cot = cotizaciones.find(c => c.id == req.params.id);
+  if (!cot) return res.status(404).json({ error: 'Cotización no encontrada' });
+  cot.estado = 'Aceptada';
+  res.json({ message: 'Cotización aceptada', cotizacion: cot });
+});
+
+// Cliente selecciona Retiro o Delivery
+app.post('/api/cotizaciones/:id/finalizar', (req, res) => {
+  const { metodoEntrega } = req.body; // 'Retiro en Local' o 'Delivery'
+  const cot = cotizaciones.find(c => c.id == req.params.id);
+  if (!cot) return res.status(404).json({ error: 'Cotización no encontrada' });
+  
+  cot.metodoEntrega = metodoEntrega;
+  cot.estado = 'Finalizada';
+  res.json({ message: 'Pedido finalizado con éxito', cotizacion: cot });
+});
+
+// --- RUTAS TIENDA ---
 app.post('/api/tiendas/login', (req, res) => {
   const { email, password } = req.body;
-  const tienda = tiendas.find(t => t.email === email && t.password === password);
+  const t = tiendas.find(x => x.email === email && x.password === password);
+  if (!t) return res.status(401).json({ error: 'Credenciales inválidas' });
+  if (!t.activa) return res.status(403).json({ error: 'Tienda desactivada' });
+  res.json({ tienda: { id: t.id, nombre: t.nombre } });
+});
 
-  if (!tienda) {
-    return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
-  }
-
-  if (!tienda.activa) {
-    return res.status(403).json({ error: 'Esta tienda se encuentra desactivada por el administrador.' });
-  }
-
-  return res.json({
-    message: 'Inicio de sesión exitoso',
-    tienda: { id: tienda.id, nombre: tienda.nombre }
+app.get('/api/solicitudes/tienda', (req, res) => {
+  // Las tiendas ven solicitudes pero NINGUNA ve datos de contacto de otras o cliente
+  const anonimas = solicitudes.map(s => {
+    const miCot = cotizaciones.find(c => c.solicitudId === s.id && c.tiendaId === req.query.tiendaId);
+    return {
+      id: s.id, marca: s.marca, modelo: s.modelo, anio: s.anio, repuesto: s.repuesto,
+      vin: s.vin, foto_url: s.foto_url,
+      miCotizacion: miCot || null,
+      // Solo revela el WhatsApp si el cliente finalizó la compra con esta tienda
+      cliente_whatsapp: (miCot && miCot.metodoEntrega) ? s.cliente_whatsapp : 'Protegido hasta aceptar pedido'
+    };
   });
+  res.json(anonimas);
 });
 
-app.post('/api/solicitudes/:id/aceptar', (req, res) => {
-  const { id } = req.params;
-  const { tiendaNombre } = req.body;
-
-  const solicitud = solicitudes.find(s => s.id == id);
-  if (!solicitud) {
-    return res.status(404).json({ error: 'Solicitud no encontrada' });
+app.post('/api/cotizaciones', (req, res) => {
+  const { solicitudId, tiendaId, tiendaNombre, precio } = req.body;
+  let cot = cotizaciones.find(c => c.solicitudId == solicitudId && c.tiendaId == tiendaId);
+  
+  if (cot) {
+    cot.precio = precio;
+  } else {
+    cot = {
+      id: Date.now(),
+      solicitudId, tiendaId, tiendaNombre, precio, estado: 'Pendiente', metodoEntrega: null
+    };
+    cotizaciones.push(cot);
   }
-
-  solicitud.estado = 'Aceptada';
-  solicitud.tiendaAsignada = tiendaNombre;
-
-  return res.json({ message: 'Solicitud aceptada', solicitud });
+  res.json({ message: 'Cotización enviada', cotizacion: cot });
 });
 
-// ======================================================
-// 3. RUTAS CHAT
-// ======================================================
-app.get('/api/chat/:solicitudId', (req, res) => {
-  const { solicitudId } = req.params;
-  const mensajes = mensajesChat.filter(m => m.solicitudId == solicitudId);
-  return res.json(mensajes);
+// --- CHAT INTERNO ---
+app.get('/api/chat/cotizacion/:cotizacionId', (req, res) => {
+  const msgs = mensajesChat.filter(m => m.cotizacionId == req.params.cotizacionId);
+  res.json(msgs);
 });
 
 app.post('/api/chat', (req, res) => {
-  const { solicitudId, remitente, texto } = req.body;
-
-  if (!texto || !solicitudId) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
-  }
-
-  const nuevoMensaje = {
+  const { cotizacionId, remitente, texto } = req.body;
+  const msg = {
     id: Date.now(),
-    solicitudId,
+    cotizacionId,
     remitente,
     texto,
     fecha: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
-
-  mensajesChat.push(nuevoMensaje);
-  return res.json(nuevoMensaje);
+  mensajesChat.push(msg);
+  res.json(msg);
 });
 
-// ======================================================
-// 4. RUTAS ADMINISTRADOR
-// ======================================================
+// --- ADMIN ---
 app.post('/api/admin/login', (req, res) => {
-  const { usuario, password } = req.body;
-  if (usuario === 'admin' && password === 'admin123') {
-    return res.json({ message: 'Acceso concedido al administrador' });
-  }
-  return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+  if (req.body.usuario === 'admin' && req.body.password === 'admin123') return res.json({ ok: true });
+  res.status(401).json({ error: 'Credenciales inválidas' });
 });
-
-app.get('/api/admin/tiendas', (req, res) => {
-  return res.json(tiendas);
-});
-
-// 🔴 CREAR NUEVA TIENDA DESDE ADMIN
+app.get('/api/admin/tiendas', (req, res) => res.json(tiendas));
 app.post('/api/admin/tiendas', (req, res) => {
   const { nombre, email, password } = req.body;
-
-  if (!nombre || !email || !password) {
-    return res.status(400).json({ error: 'Todos los campos son obligatorios para crear la tienda.' });
-  }
-
-  const existe = tiendas.some(t => t.email === email);
-  if (existe) {
-    return res.status(400).json({ error: 'Ya existe una tienda registrada con ese correo electrónico.' });
-  }
-
-  const nuevaTienda = {
-    id: Date.now(),
-    nombre,
-    email,
-    password,
-    activa: true
-  };
-
-  tiendas.push(nuevaTienda);
-  return res.status(201).json({ message: 'Tienda creada exitosamente', tienda: nuevaTienda });
+  if (tiendas.some(t => t.email === email)) return res.status(400).json({ error: 'Correo registrado' });
+  const t = { id: Date.now(), nombre, email, password, activa: true };
+  tiendas.push(t);
+  res.json(t);
 });
-
-// Cambiar estado de tienda (Activar / Desactivar)
 app.post('/api/admin/tiendas/:id/toggle', (req, res) => {
-  const { id } = req.params;
-  const tienda = tiendas.find(t => t.id == id);
-
-  if (!tienda) {
-    return res.status(404).json({ error: 'Tienda no encontrada' });
-  }
-
-  tienda.activa = !tienda.activa;
-  return res.json({ message: `Tienda ${tienda.activa ? 'activada' : 'desactivada'}`, tienda });
+  const t = tiendas.find(x => x.id == req.params.id);
+  if (t) t.activa = !t.activa;
+  res.json(t);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en el puerto ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor activo en puerto ${PORT}`));
