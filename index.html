@@ -3,174 +3,389 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress</title>
+  <title>RepuestoExpress - Solicitar Repuesto</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h1, h2, h3 { color: #007bff; text-align: center; }
-    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
+    .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .header-logo { text-align: center; margin-bottom: 15px; }
+    .header-logo img { max-width: 160px; height: auto; border-radius: 8px; }
+    h1, h2, h3, h4 { color: #007bff; text-align: center; margin-top: 5px; }
+    label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; }
     input, button, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
-    button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
-    .btn-success { background: #28a745; }
-    .btn-secondary { background: #6c757d; }
-    .card-cotizacion { border: 1px solid #2196F3; background: #e7f3fe; border-radius: 8px; padding: 15px; margin-bottom: 12px; }
-    #chat-box { height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; background: #fff; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
-    .msg { padding: 8px 12px; border-radius: 6px; max-width: 80%; font-size: 14px; }
-    .msg-tienda { background: #e9ecef; align-self: flex-start; }
-    .msg-cliente { background: #007bff; color: white; align-self: flex-end; }
+    input[type="file"] { background: #f8f9fa; padding: 8px; cursor: pointer; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .btn-success { background: #28a745; margin-top: 10px; }
+    .btn-success:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; margin-top: 10px; }
+    .btn-secondary:hover { background: #5a6268; }
+    #preview-img { max-width: 100%; max-height: 200px; margin-top: 10px; border-radius: 6px; display: none; object-fit: cover; }
+    #msg-cliente { text-align: center; font-weight: bold; margin-top: 15px; }
+    
+    .consultar-box { border-top: 2px solid #eee; margin-top: 25px; padding-top: 15px; }
+    .card-cotizacion { border: 1px solid #2196F3; background: #e7f3fe; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; }
+    
+    /* Chat UI */
+    #chat-box { height: 260px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fdfdfd; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { padding: 8px 14px; border-radius: 8px; max-width: 80%; font-size: 14px; word-break: break-word; line-height: 1.4; }
+    .msg-tienda { background: #e9ecef; color: #333; align-self: flex-start; border-left: 4px solid #007bff; }
+    .msg-cliente { background: #007bff; color: white; align-self: flex-end; text-align: right; }
+    .msg-meta { font-size: 10px; opacity: 0.8; display: block; margin-top: 4px; }
+    .info-box { background: #f8f9fa; border-left: 4px solid #28a745; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; text-align: left; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- FORMULARIO -->
-    <div id="sec-form">
-      <h1>Solicitar Repuesto</h1>
+    <!-- LOGO PRINCIPAL -->
+    <div class="header-logo">
+      <img src="logo.png" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.jpg';">
+    </div>
+
+    <!-- 1. FORMULARIO DE NUEVA SOLICITUD -->
+    <div id="section-form">
+      <h1>Solicita tu Repuesto</h1>
+
       <form id="form-solicitud">
-        <label>Marca:</label><input type="text" id="marca" required>
-        <label>Modelo:</label><input type="text" id="modelo" required>
-        <label>Año:</label><input type="number" id="anio" required>
-        <label>Repuesto:</label><input type="text" id="repuesto" required>
-        <label>WhatsApp de Contacto:</label><input type="text" id="whatsapp" required>
-        <button type="submit">🚀 Enviar Solicitud</button>
+        <label>Marca del Auto:</label>
+        <input type="text" id="marca" placeholder="Ej: Toyota, Nissan" required>
+
+        <label>Modelo del Auto:</label>
+        <input type="text" id="modelo" placeholder="Ej: Corolla, Sentra" required>
+
+        <label>Año:</label>
+        <input type="number" id="anio" placeholder="Ej: 2018" required>
+
+        <label>Repuesto que buscas:</label>
+        <input type="text" id="repuesto" placeholder="Ej: Amortiguadores delanteros" required>
+
+        <label>Número de Chasis / VIN (Opcional):</label>
+        <input type="text" id="vin" placeholder="Para repuestos muy específicos">
+
+        <label>📷 Foto de la pieza/repuesto (Opcional):</label>
+        <input type="file" id="foto_repuesto" accept="image/*">
+        <img id="preview-img" alt="Vista previa de la foto">
+
+        <label>Tu Número de WhatsApp:</label>
+        <input type="text" id="whatsapp" placeholder="Ej: 50765675993" required>
+
+        <button type="submit" id="btn-enviar">🚀 Enviar Solicitud a las Tiendas</button>
       </form>
+
+      <p id="msg-cliente"></p>
+
+      <!-- CONSULTAR COTIZACIONES PREVIAS -->
+      <div class="consultar-box">
+        <label>¿Ya solicitaste? Ingresa tu WhatsApp para ver respuestas:</label>
+        <input type="text" id="consultar-whatsapp" placeholder="Ej: 50765675993">
+        <button onclick="buscarSolicitudPorWhatsapp()" class="btn-secondary">🔍 Ver mis cotizaciones</button>
+      </div>
     </div>
 
-    <!-- LISTA DE COTIZACIONES RECIBIDAS -->
-    <div id="sec-cotizaciones" style="display:none;">
-      <h2>Cotizaciones Recibidas</h2>
-      <div id="lista-cots">Buscando ofertas de tiendas...</div>
-    </div>
-
-    <!-- CHAT CON LA TIENDA SELECCIONADA -->
-    <div id="sec-chat" style="display:none;">
-      <h3 id="chat-tienda-titulo">Chat con Tienda</h3>
-      <div id="chat-box"></div>
-      <div style="display:flex; gap:5px;">
-        <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
-        <button onclick="enviarMensaje()" style="width:100px; margin:0;">Enviar</button>
+    <!-- 2. PANEL DE COTIZACIONES RECIBIDAS -->
+    <div id="section-cotizaciones" style="display: none;">
+      <h2>Cotizaciones Disponibles</h2>
+      <div id="info-resumen-solicitud" class="info-box"></div>
+      
+      <div id="lista-cotizaciones">
+        <p style="text-align: center; color: #666;">Esperando respuesta de las tiendas...</p>
       </div>
 
-      <!-- BOTÓN PARA PASAR A PEDIDO -->
-      <div id="bloque-finalizar" style="margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px;">
-        <h4>📦 Concluir y Realizar Pedido</h4>
-        <label>Selecciona cómo deseas recibir tu repuesto:</label>
+      <button onclick="volverAlFormulario()" class="btn-secondary">← Volver al inicio</button>
+    </div>
+
+    <!-- 3. CHAT DIRECTO CON LA TIENDA Y PEDIDO -->
+    <div id="section-chat" style="display: none;">
+      <h2 id="chat-tienda-titulo">Chat con la Tienda</h2>
+      
+      <div id="chat-box"></div>
+
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." style="margin: 0;">
+        <button onclick="enviarMensajeCliente()" style="width: 110px; margin: 0;">Enviar</button>
+      </div>
+
+      <!-- SECCIÓN FINALIZAR PEDIDO -->
+      <div style="margin-top: 25px; border-top: 2px dashed #ccc; padding-top: 15px;">
+        <h4 style="margin-bottom: 5px;">📦 Concluir y Realizar Pedido</h4>
+        <label style="margin-top: 0;">Selecciona cómo deseas recibir tu repuesto:</label>
         <select id="select-metodo">
           <option value="Retiro en Local">🏬 Retiro en Local</option>
           <option value="Delivery">🛵 Delivery</option>
         </select>
-        <button onclick="finalizarPedido()" class="btn-success">✅ Confirmar Pedido y Compartir WhatsApp</button>
+        <button onclick="finalizarPedido()" class="btn-success">✅ Confirmar Pedido</button>
       </div>
+
+      <button onclick="volverACotizaciones()" class="btn-secondary">← Volver a Cotizaciones</button>
     </div>
+
   </div>
 
   <script>
-    const API = 'https://repuestoexpress.onrender.com/api';
+    const API_URL = 'https://repuestoexpress.onrender.com/api';
+    let fotoBase64 = null;
     let solicitudActiva = null;
     let cotizacionActiva = null;
     let intervalCot = null;
     let intervalChat = null;
 
+    // Compresión y previsualización de imágenes
+    document.getElementById('foto_repuesto').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxDimension = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
+            } else {
+              if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
+
+            const imgPreview = document.getElementById('preview-img');
+            imgPreview.src = fotoBase64;
+            imgPreview.style.display = 'block';
+          };
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fotoBase64 = null;
+      }
+    });
+
+    // Enviar solicitud
     document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = {
-        marca: document.getElementById('marca').value,
-        modelo: document.getElementById('modelo').value,
-        anio: document.getElementById('anio').value,
-        repuesto: document.getElementById('repuesto').value,
-        cliente_whatsapp: document.getElementById('whatsapp').value
-      };
-      const res = await fetch(`${API}/solicitudes`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
-      });
-      const resData = await res.json();
-      solicitudActiva = resData.solicitud;
+      const msg = document.getElementById('msg-cliente');
+      const btn = document.getElementById('btn-enviar');
+      
+      btn.disabled = true;
+      msg.style.color = '#333';
+      msg.innerText = 'Enviando solicitud...';
 
-      document.getElementById('sec-form').style.display = 'none';
-      document.getElementById('sec-cotizaciones').style.display = 'block';
+      const data = {
+        marca: document.getElementById('marca').value.trim(),
+        modelo: document.getElementById('modelo').value.trim(),
+        anio: parseInt(document.getElementById('anio').value),
+        repuesto: document.getElementById('repuesto').value.trim(),
+        vin: document.getElementById('vin').value.trim() || '',
+        foto_url: fotoBase64 || null,
+        cliente_whatsapp: document.getElementById('whatsapp').value.trim()
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const resData = await res.json();
+
+        if (res.ok && resData.solicitud) {
+          msg.innerText = '';
+          document.getElementById('form-solicitud').reset();
+          document.getElementById('preview-img').style.display = 'none';
+          fotoBase64 = null;
+
+          solicitudActiva = resData.solicitud;
+          mostrarPantallaCotizaciones();
+        } else {
+          msg.style.color = 'red';
+          msg.innerText = 'Error: ' + (resData.error || 'No se pudo enviar.');
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.innerText = 'Error de conexión con el servidor.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Mostrar cotizaciones recibidas
+    function mostrarPantallaCotizaciones() {
+      document.getElementById('section-form').style.display = 'none';
+      document.getElementById('section-chat').style.display = 'none';
+      document.getElementById('section-cotizaciones').style.display = 'block';
+
+      document.getElementById('info-resumen-solicitud').innerHTML = `
+        <strong>Solicitud:</strong> ${solicitudActiva.marca} ${solicitudActiva.modelo} (${solicitudActiva.anio})<br>
+        <strong>Pieza:</strong> ${solicitudActiva.repuesto}
+      `;
 
       cargarCotizaciones();
+      if (intervalCot) clearInterval(intervalCot);
       intervalCot = setInterval(cargarCotizaciones, 3000);
-    });
+    }
 
     async function cargarCotizaciones() {
       if (!solicitudActiva) return;
-      const res = await fetch(`${API}/cotizaciones/solicitud/${solicitudActiva.id}`);
-      const cots = await res.json();
-      const contenedor = document.getElementById('lista-cots');
-      contenedor.innerHTML = '';
+      try {
+        const res = await fetch(`${API_URL}/cotizaciones/solicitud/${solicitudActiva.id}`);
+        const cots = await res.json();
+        const contenedor = document.getElementById('lista-cotizaciones');
+        contenedor.innerHTML = '';
 
-      if (cots.length === 0) {
-        contenedor.innerHTML = '<p style="text-align:center;">Las tiendas están preparando sus precios...</p>';
-        return;
+        if (!cots || cots.length === 0) {
+          contenedor.innerHTML = '<p style="text-align: center; color: #888;">Las tiendas están preparando sus precios. Recibirás las ofertas aquí en tiempo real...</p>';
+          return;
+        }
+
+        cots.forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'card-cotizacion';
+          div.innerHTML = `
+            <strong style="font-size: 16px;">${c.tiendaNombre}</strong><br>
+            <span style="font-size: 20px; font-weight: bold; color: #28a745;">Precio: $${c.precio}</span><br>
+            <button class="btn-success" onclick="aceptarOferta(${c.id}, '${c.tiendaNombre}')">💬 Aceptar Oferta y Chatear</button>
+          `;
+          contenedor.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Error al cargar cotizaciones:', err);
       }
-
-      cots.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'card-cotizacion';
-        div.innerHTML = `
-          <strong>Tienda: ${c.tiendaNombre}</strong><br>
-          <span style="font-size:18px; color:green;">Precio: $${c.precio}</span><br>
-          <button class="btn-success" onclick="aceptarOferta(${c.id}, '${c.tiendaNombre}')">💬 Aceptar Oferta y Chatear</button>
-        `;
-        contenedor.appendChild(div);
-      });
     }
 
+    // Aceptar oferta e iniciar chat
     async function aceptarOferta(cotId, tiendaNombre) {
-      clearInterval(intervalCot);
-      const res = await fetch(`${API}/cotizaciones/${cotId}/aceptar`, { method: 'POST' });
-      const data = await res.json();
-      cotizacionActiva = data.cotizacion;
+      try {
+        if (intervalCot) clearInterval(intervalCot);
+        const res = await fetch(`${API_URL}/cotizaciones/${cotId}/aceptar`, { method: 'POST' });
+        const data = await res.json();
+        cotizacionActiva = data.cotizacion;
 
-      document.getElementById('sec-cotizaciones').style.display = 'none';
-      document.getElementById('sec-chat').style.display = 'block';
-      document.getElementById('chat-tienda-titulo').innerText = `Chat con ${tiendaNombre}`;
+        document.getElementById('section-cotizaciones').style.display = 'none';
+        document.getElementById('section-chat').style.display = 'block';
+        document.getElementById('chat-tienda-titulo').innerText = `Chat con ${tiendaNombre}`;
 
-      cargarMensajes();
-      intervalChat = setInterval(cargarMensajes, 3000);
+        cargarMensajes();
+        if (intervalChat) clearInterval(intervalChat);
+        intervalChat = setInterval(cargarMensajes, 3000);
+      } catch (err) {
+        alert('Error al aceptar la oferta.');
+      }
     }
 
     async function cargarMensajes() {
       if (!cotizacionActiva) return;
-      const res = await fetch(`${API}/chat/cotizacion/${cotizacionActiva.id}`);
-      const msgs = await res.json();
-      const box = document.getElementById('chat-box');
-      box.innerHTML = '';
+      try {
+        const res = await fetch(`${API_URL}/chat/cotizacion/${cotizacionActiva.id}`);
+        const msgs = await res.json();
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
 
-      msgs.forEach(m => {
-        const div = document.createElement('div');
-        div.className = `msg ${m.remitente === 'Cliente' ? 'msg-cliente' : 'msg-tienda'}`;
-        div.innerText = `${m.texto}`;
-        box.appendChild(div);
-      });
-      box.scrollTop = box.scrollHeight;
+        msgs.forEach(m => {
+          const div = document.createElement('div');
+          div.className = `msg ${m.remitente === 'Cliente' ? 'msg-cliente' : 'msg-tienda'}`;
+          div.innerHTML = `
+            <strong>${m.remitente}:</strong> ${m.texto}
+            <span class="msg-meta">${m.fecha}</span>
+          `;
+          box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight;
+      } catch (err) {
+        console.error('Error al cargar chat:', err);
+      }
     }
 
-    async function enviarMensaje() {
+    async function enviarMensajeCliente() {
       const input = document.getElementById('chat-input');
       const texto = input.value.trim();
       if (!texto || !cotizacionActiva) return;
 
-      await fetch(`${API}/chat`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ cotizacionId: cotizacionActiva.id, remitente: 'Cliente', texto })
-      });
-      input.value = '';
-      cargarMensajes();
-    }
+      try {
+        const res = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cotizacionId: cotizacionActiva.id,
+            remitente: 'Cliente',
+            texto: texto
+          })
+        });
 
-    async function finalizarPedido() {
-      const metodo = document.getElementById('select-metodo').value;
-      const res = await fetch(`${API}/cotizaciones/${cotizacionActiva.id}/finalizar`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ metodoEntrega: metodo })
-      });
-      if (res.ok) {
-        alert('🎉 ¡Pedido enviado a la tienda! Ellos se contactarán a tu WhatsApp para coordinar la entrega.');
-        location.reload();
+        if (res.ok) {
+          input.value = '';
+          cargarMensajes();
+        }
+      } catch (err) {
+        alert('Error al enviar mensaje');
       }
     }
+
+    // Finalizar Pedido y Revelar WhatsApp a la tienda
+    async function finalizarPedido() {
+      const metodo = document.getElementById('select-metodo').value;
+      try {
+        const res = await fetch(`${API_URL}/cotizaciones/${cotizacionActiva.id}/finalizar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ metodoEntrega: metodo })
+        });
+
+        if (res.ok) {
+          alert('🎉 ¡Pedido confirmado! La tienda ha recibido tus datos y te contactará a tu WhatsApp para coordinar.');
+          volverAlFormulario();
+        }
+      } catch (err) {
+        alert('Error al procesar el pedido.');
+      }
+    }
+
+    // Consultar solicitudes anteriores por WhatsApp
+    async function buscarSolicitudPorWhatsapp() {
+      const wsInput = document.getElementById('consultar-whatsapp').value.trim();
+      if (!wsInput) {
+        alert('Ingresa tu número de WhatsApp para buscar.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes/cliente/${wsInput}`);
+        const solicitudes = await res.json();
+
+        if (solicitudes && solicitudes.length > 0) {
+          solicitudActiva = solicitudes[0]; // Carga la última solicitud realizada
+          mostrarPantallaCotizaciones();
+        } else {
+          alert('No se encontraron solicitudes con ese número de WhatsApp.');
+        }
+      } catch (err) {
+        alert('Error al consultar servidor.');
+      }
+    }
+
+    function volverAlFormulario() {
+      if (intervalCot) clearInterval(intervalCot);
+      if (intervalChat) clearInterval(intervalChat);
+      solicitudActiva = null;
+      cotizacionActiva = null;
+      document.getElementById('section-cotizaciones').style.display = 'none';
+      document.getElementById('section-chat').style.display = 'none';
+      document.getElementById('section-form').style.display = 'block';
+    }
+
+    function volverACotizaciones() {
+      if (intervalChat) clearInterval(intervalChat);
+      cotizacionActiva = null;
+      mostrarPantallaCotizaciones();
+    }
   </script>
+
 </body>
 </html>
