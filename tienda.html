@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress - Portal de Tiendas</title>
+  <title>RepuestoExpress - Portal Tiendas</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
     .container { max-width: 800px; margin: 0 auto; }
@@ -26,7 +26,6 @@
     .badge-aceptada { background: #cce5ff; color: #004085; }
     .badge-exito { background: #d4edda; color: #155724; }
 
-    /* Chat UI */
     #chat-box { height: 260px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fdfdfd; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
     .msg { padding: 8px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; word-break: break-word; }
     .msg-tienda { background: #007bff; color: white; align-self: flex-end; }
@@ -41,22 +40,18 @@
       <img src="logo.png" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.jpg';">
     </div>
 
-    <!-- 1. FORMULARIO DE LOGIN TIENDA -->
+    <!-- LOGIN -->
     <div id="section-login" class="card">
-      <h2>🔑 Acceso a Tiendas de Repuestos</h2>
+      <h2>🔑 Acceso Tiendas</h2>
       <form id="form-login">
-        <label>Correo Electrónico:</label>
-        <input type="email" id="login-email" placeholder="tienda@ejemplo.com" required>
-
-        <label>Contraseña:</label>
-        <input type="password" id="login-password" placeholder="123" required>
-
+        <label>Correo Electrónico:</label><input type="email" id="login-email" required>
+        <label>Contraseña:</label><input type="password" id="login-password" required>
         <button type="submit">Ingresar al Panel</button>
       </form>
-      <p id="login-error" style="color: red; text-align: center; margin-top: 15px; font-weight: bold;"></p>
+      <p id="login-error" style="color: red; text-align: center; margin-top: 15px;"></p>
     </div>
 
-    <!-- 2. PANEL PRINCIPAL DE SOLICITUDES -->
+    <!-- PANEL -->
     <div id="section-panel" class="card" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <h2 id="tienda-nombre-header">Panel de Tienda</h2>
@@ -67,19 +62,16 @@
       <div id="lista-solicitudes">Cargando solicitudes...</div>
     </div>
 
-    <!-- 3. CHAT CON EL CLIENTE -->
+    <!-- CHAT -->
     <div id="section-chat" class="card" style="display: none;">
       <button onclick="cerrarChat()" class="btn-secondary" style="width: auto; margin-bottom: 15px;">← Volver al Panel</button>
       <h3 id="chat-titulo">Chat de Cotización</h3>
-      
       <div id="chat-box"></div>
-
       <div style="display: flex; gap: 8px;">
-        <input type="text" id="chat-input" placeholder="Escribe tu mensaje al cliente..." style="margin: 0;">
+        <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." style="margin: 0;">
         <button onclick="enviarMensajeTienda()" style="width: 110px; margin: 0;">Enviar</button>
       </div>
     </div>
-
   </div>
 
   <script>
@@ -87,37 +79,29 @@
     let tiendaActual = null;
     let cotizacionActivaId = null;
     let intervalChat = null;
+    let intervalSolicitudes = null;
 
-    // Login
     document.getElementById('form-login').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-
-      try {
-        const res = await fetch(`${API_URL}/tiendas/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          tiendaActual = data.tienda;
-          document.getElementById('section-login').style.display = 'none';
-          document.getElementById('section-panel').style.display = 'block';
-          document.getElementById('tienda-nombre-header').innerText = `Panel: ${tiendaActual.nombre}`;
-          cargarSolicitudes();
-        } else {
-          document.getElementById('login-error').innerText = data.error || 'Credenciales incorrectas.';
-        }
-      } catch (err) {
-        document.getElementById('login-error').innerText = 'Error de conexión con el servidor.';
+      const res = await fetch(`${API_URL}/tiendas/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('login-email').value.trim(), password: document.getElementById('login-password').value.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        tiendaActual = data.tienda;
+        document.getElementById('section-login').style.display = 'none';
+        document.getElementById('section-panel').style.display = 'block';
+        document.getElementById('tienda-nombre-header').innerText = `Panel: ${tiendaActual.nombre}`;
+        cargarSolicitudes();
+        intervalSolicitudes = setInterval(cargarSolicitudes, 3000);
+      } else {
+        document.getElementById('login-error').innerText = data.error || 'Acceso incorrecto';
       }
     });
 
-    // Cargar Solicitudes
     async function cargarSolicitudes() {
+      if (!tiendaActual) return;
       try {
         const res = await fetch(`${API_URL}/solicitudes/tienda?tiendaId=${tiendaActual.id}`);
         const solicitudes = await res.json();
@@ -125,7 +109,7 @@
         contenedor.innerHTML = '';
 
         if (!solicitudes || solicitudes.length === 0) {
-          contenedor.innerHTML = '<p>No hay solicitudes pendientes en este momento.</p>';
+          contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
           return;
         }
 
@@ -139,9 +123,9 @@
             if (cot.estado === 'Finalizada') {
               estadoHTML = `<span class="badge badge-exito">🟢 Pedido Finalizado (${cot.metodoEntrega}) - Precio: $${cot.precio}</span>`;
             } else if (cot.estado === 'Aceptada') {
-              estadoHTML = `<span class="badge badge-aceptada">🔵 Cotización Aceptada por el Cliente - Precio: $${cot.precio}</span>`;
+              estadoHTML = `<span class="badge badge-aceptada">🔵 Oferta Aceptada - Precio: $${cot.precio}</span>`;
             } else {
-              estadoHTML = `<span class="badge badge-espera">🟡 Cotización Enviada ($${cot.precio}) - Esperando al Cliente</span>`;
+              estadoHTML = `<span class="badge badge-espera">🟡 Oferta Enviada ($${cot.precio}) - Esperando al Cliente</span>`;
             }
           }
 
@@ -151,61 +135,39 @@
               <span><strong>Pieza:</strong> ${sol.repuesto}</span><br>
               ${sol.vin ? `<small><strong>VIN:</strong> ${sol.vin}</small><br>` : ''}
               <small><strong>WhatsApp:</strong> ${sol.cliente_whatsapp}</small><br>
-              ${sol.foto_url ? `<img src="${sol.foto_url}" class="solicitud-foto" alt="Foto del repuesto">` : ''}<br>
+              ${sol.foto_url ? `<img src="${sol.foto_url}" class="solicitud-foto"><br>` : ''}
               ${estadoHTML}
             </div>
             
             <div style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px;">
               ${!cot ? `
                 <div style="display: flex; gap: 8px;">
-                  <input type="number" id="precio-${sol.id}" placeholder="Precio en $" style="margin: 0;">
+                  <input type="number" id="precio-${sol.id}" placeholder="Precio $" style="margin: 0;">
                   <button class="btn-success" onclick="enviarCotizacion(${sol.id})" style="width: 160px; margin: 0;">Enviar Precio</button>
                 </div>
               ` : `
                 ${(cot.estado === 'Aceptada' || cot.estado === 'Finalizada') ? `
-                  <button onclick="abrirChat(${cot.id}, '${sol.marca} ${sol.modelo}')">💬 Abrir Chat con Cliente</button>
-                ` : '<small style="color: #666;">Esperando que el cliente seleccione tu oferta...</small>'}
+                  <button onclick="abrirChat(${cot.id}, '${sol.marca} ${sol.modelo}')">💬 Entrar al Chat</button>
+                ` : '<small style="color: #666;">Esperando respuesta del cliente...</small>'}
               `}
             </div>
           `;
           contenedor.appendChild(div);
         });
-      } catch (err) {
-        console.error('Error al cargar solicitudes:', err);
-      }
+      } catch (err) {}
     }
 
-    // Enviar Precio de Cotización
     async function enviarCotizacion(solicitudId) {
-      const precioInput = document.getElementById(`precio-${solicitudId}`);
-      const precio = precioInput.value.trim();
+      const precio = document.getElementById(`precio-${solicitudId}`).value.trim();
+      if (!precio) return alert('Ingresa un precio');
 
-      if (!precio) {
-        alert('Ingresa un precio válido');
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/cotizaciones`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            solicitudId,
-            tiendaId: tiendaActual.id,
-            tiendaNombre: tiendaActual.nombre,
-            precio: precio
-          })
-        });
-
-        if (res.ok) {
-          cargarSolicitudes();
-        }
-      } catch (err) {
-        alert('Error al enviar la cotización');
-      }
+      await fetch(`${API_URL}/cotizaciones`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ solicitudId, tiendaId: tiendaActual.id, tiendaNombre: tiendaActual.nombre, precio })
+      });
+      cargarSolicitudes();
     }
 
-    // Chat
     function abrirChat(cotizacionId, autoInfo) {
       cotizacionActivaId = cotizacionId;
       document.getElementById('section-panel').style.display = 'none';
@@ -227,61 +189,39 @@
 
     async function cargarMensajesTienda() {
       if (!cotizacionActivaId) return;
-      try {
-        const res = await fetch(`${API_URL}/chat/cotizacion/${cotizacionActivaId}`);
-        const mensajes = await res.json();
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
+      const res = await fetch(`${API_URL}/chat/cotizacion/${cotizacionActivaId}`);
+      const mensajes = await res.json();
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML = '';
 
-        mensajes.forEach(m => {
-          const div = document.createElement('div');
-          div.className = `msg ${m.remitente === 'Tienda' ? 'msg-tienda' : 'msg-cliente'}`;
-          div.innerHTML = `
-            <strong>${m.remitente}:</strong> ${m.texto}
-            <span class="msg-meta">${m.fecha}</span>
-          `;
-          chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-      } catch (err) {
-        console.error('Error al cargar chat:', err);
-      }
+      mensajes.forEach(m => {
+        const div = document.createElement('div');
+        div.className = `msg ${m.remitente === 'Tienda' ? 'msg-tienda' : 'msg-cliente'}`;
+        div.innerHTML = `<strong>${m.remitente}:</strong> ${m.texto}<span class="msg-meta">${m.fecha}</span>`;
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function enviarMensajeTienda() {
       const input = document.getElementById('chat-input');
-      const texto = input.value.trim();
-      if (!texto || !cotizacionActivaId) return;
+      if (!input.value.trim() || !cotizacionActivaId) return;
 
-      try {
-        const res = await fetch(`${API_URL}/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cotizacionId: cotizacionActivaId,
-            remitente: 'Tienda',
-            texto: texto
-          })
-        });
-
-        if (res.ok) {
-          input.value = '';
-          cargarMensajesTienda();
-        }
-      } catch (err) {
-        alert('Error al enviar mensaje');
-      }
+      await fetch(`${API_URL}/chat`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cotizacionId: cotizacionActivaId, remitente: 'Tienda', texto: input.value.trim() })
+      });
+      input.value = '';
+      cargarMensajesTienda();
     }
 
     function logout() {
       if (intervalChat) clearInterval(intervalChat);
+      if (intervalSolicitudes) clearInterval(intervalSolicitudes);
       tiendaActual = null;
       document.getElementById('section-panel').style.display = 'none';
       document.getElementById('section-login').style.display = 'block';
-      document.getElementById('login-email').value = '';
-      document.getElementById('login-password').value = '';
     }
   </script>
-
 </body>
 </html>
