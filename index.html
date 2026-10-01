@@ -9,8 +9,7 @@
     .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .header-logo { text-align: center; margin-bottom: 15px; }
     .header-logo img { max-width: 160px; height: auto; border-radius: 8px; }
-    .banner-container { width: 100%; margin-bottom: 20px; text-align: center; overflow: hidden; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .banner-container img { width: 100%; max-height: 120px; object-fit: cover; display: block; border-radius: 8px; cursor: pointer; }
+    
     h1, h2, h3, h4 { color: #007bff; text-align: center; margin-top: 5px; }
     label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; }
     input, button, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
@@ -36,12 +35,6 @@
   <div class="container">
     <div class="header-logo">
       <img src="logo.png" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.jpg';">
-    </div>
-
-    <div class="banner-container" id="banner-top">
-      <a id="banner-top-link" href="#" target="_blank">
-        <img id="banner-top-img" src="https://via.placeholder.com/500x120?text=Tu+Publicidad+AQU%C3%81" alt="Publicidad">
-      </a>
     </div>
 
     <!-- FORMULARIO -->
@@ -103,19 +96,6 @@
     let cotizacionActiva = null;
     let intervalCot = null;
     let intervalChat = null;
-
-    // Cargar Banners
-    async function cargarBanners() {
-      try {
-        const res = await fetch(`${API_URL}/banners`);
-        const banner = await res.json();
-        if (banner && banner.imagen_url) {
-          document.getElementById('banner-top-img').src = banner.imagen_url;
-          document.getElementById('banner-top-link').href = banner.link_url || '#';
-        }
-      } catch (err) {}
-    }
-    cargarBanners();
 
     // RESTAURAR SESIÓN AL CARGAR PÁGINA
     window.addEventListener('load', () => {
