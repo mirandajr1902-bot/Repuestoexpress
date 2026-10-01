@@ -9,58 +9,108 @@
     .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .header-logo { text-align: center; margin-bottom: 15px; }
     .header-logo img { max-width: 160px; height: auto; border-radius: 8px; }
-    h1 { color: #007bff; text-align: center; margin-top: 5px; font-size: 24px; }
+    h1, h2 { color: #007bff; text-align: center; margin-top: 5px; font-size: 22px; }
     label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; }
     input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
     input[type="file"] { background: #f8f9fa; padding: 8px; cursor: pointer; }
-    button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .btn-whatsapp { background: #25d366; color: white; font-size: 16px; margin-top: 10px; display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 6px; font-weight: bold; }
+    .btn-whatsapp:hover { background: #1eb854; }
+    .btn-secondary { background: #6c757d; }
+    .btn-secondary:hover { background: #5a6268; }
     #preview-img { max-width: 100%; max-height: 200px; margin-top: 10px; border-radius: 6px; display: none; object-fit: cover; }
     #msg-cliente { text-align: center; font-weight: bold; margin-top: 15px; }
+
+    /* Estilos Chat */
+    #chat-box { height: 280px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fdfdfd; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { padding: 10px 14px; border-radius: 8px; max-width: 80%; font-size: 14px; word-break: break-word; line-height: 1.4; }
+    .msg-tienda { background: #e9ecef; color: #333; align-self: flex-start; border-left: 4px solid #007bff; }
+    .msg-cliente { background: #007bff; color: white; align-self: flex-end; text-align: right; }
+    .msg-meta { font-size: 10px; opacity: 0.8; display: block; margin-top: 4px; }
+    .info-box { background: #e7f3fe; border-left: 4px solid #2196F3; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; }
+    .consultar-box { border-top: 2px solid #eee; margin-top: 25px; padding-top: 15px; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="header-logo">
-      <img src="logo.jpg" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.png';">
+      <img src="logo.png" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.jpg';">
     </div>
 
-    <h1>Solicita tu Repuesto</h1>
+    <!-- SECCIÓN 1: FORMULARIO -->
+    <div id="section-form">
+      <h1>Solicita tu Repuesto</h1>
 
-    <form id="form-solicitud">
-      <label>Marca del Auto:</label>
-      <input type="text" id="marca" placeholder="Ej: Toyota, Nissan" required>
+      <form id="form-solicitud">
+        <label>Marca del Auto:</label>
+        <input type="text" id="marca" placeholder="Ej: Toyota, Nissan" required>
 
-      <label>Modelo del Auto:</label>
-      <input type="text" id="modelo" placeholder="Ej: Corolla, Sentra" required>
+        <label>Modelo del Auto:</label>
+        <input type="text" id="modelo" placeholder="Ej: Corolla, Sentra" required>
 
-      <label>Año:</label>
-      <input type="number" id="anio" placeholder="Ej: 2018" required>
+        <label>Año:</label>
+        <input type="number" id="anio" placeholder="Ej: 2018" required>
 
-      <label>Repuesto que buscas:</label>
-      <input type="text" id="repuesto" placeholder="Ej: Amortiguadores delanteros" required>
+        <label>Repuesto que buscas:</label>
+        <input type="text" id="repuesto" placeholder="Ej: Amortiguadores delanteros" required>
 
-      <label>Número de Chasis / VIN (Opcional):</label>
-      <input type="text" id="vin" placeholder="Para repuestos muy específicos">
+        <label>Número de Chasis / VIN (Opcional):</label>
+        <input type="text" id="vin" placeholder="Para repuestos muy específicos">
 
-      <label>📷 Foto de la pieza/repuesto (Opcional):</label>
-      <input type="file" id="foto_repuesto" accept="image/*">
-      <img id="preview-img" alt="Vista previa de la foto">
+        <label>📷 Foto de la pieza/repuesto (Opcional):</label>
+        <input type="file" id="foto_repuesto" accept="image/*">
+        <img id="preview-img" alt="Vista previa de la foto">
 
-      <label>Tu Número de WhatsApp:</label>
-      <input type="text" id="whatsapp" placeholder="Ej: 50765675993" required>
+        <label>Tu Número de WhatsApp:</label>
+        <input type="text" id="whatsapp" placeholder="Ej: 50765675993" required>
 
-      <button type="submit" id="btn-enviar">🚀 Enviar Solicitud a las Tiendas</button>
-    </form>
+        <button type="submit" id="btn-enviar">🚀 Enviar Solicitud a las Tiendas</button>
+      </form>
 
-    <p id="msg-cliente"></p>
+      <p id="msg-cliente"></p>
+
+      <!-- CONSULTAR CHAT EXISTENTE -->
+      <div class="consultar-box">
+        <label>¿Ya solicitaste? Ingresa tu WhatsApp para ver respuestas:</label>
+        <input type="text" id="consultar-whatsapp" placeholder="Ej: 50765675993">
+        <button onclick="buscarSolicitudPorWhatsapp()" class="btn-secondary">🔍 Ver mis cotizaciones</button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2: CHAT EN VIVO -->
+    <div id="section-chat" style="display: none;">
+      <h2>💬 Chat de Cotizaciones</h2>
+      
+      <div class="info-box" id="info-solicitud">
+        Cargando detalles de tu solicitud...
+      </div>
+
+      <div id="chat-box"></div>
+
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chat-input" placeholder="Escribe un mensaje a la tienda..." style="margin: 0;">
+        <button onclick="enviarMensajeCliente()" style="width: 110px; margin: 0;">Enviar</button>
+      </div>
+
+      <!-- ACEPTAR OFERTA EN WHATSAPP -->
+      <a id="btn-aceptar-oferta" href="#" target="_blank" class="btn-whatsapp" style="display: none;">
+        ✅ Aceptar Oferta / Ir a WhatsApp
+      </a>
+
+      <button onclick="volverAlFormulario()" class="btn-secondary">← Volver al formulario</button>
+    </div>
+
   </div>
 
   <script>
     const API_URL = 'https://repuestoexpress.onrender.com/api';
     let fotoBase64 = null;
+    let solicitudActiva = null;
+    let intervalChat = null;
 
-    // Redimensionar e intensificar compresión para que no sobrecargue el envío
+    // Procesar foto
     document.getElementById('foto_repuesto').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
@@ -70,7 +120,7 @@
           img.src = event.target.result;
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const maxDimension = 600; // Máximo 600px para mantener un peso liviano
+            const maxDimension = 600;
             let width = img.width;
             let height = img.height;
 
@@ -85,7 +135,6 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Compresión JPEG al 50%
             fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
             const imgPreview = document.getElementById('preview-img');
@@ -99,6 +148,7 @@
       }
     });
 
+    // Enviar Formulario
     document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg-cliente');
@@ -125,27 +175,19 @@
           body: JSON.stringify(data)
         });
 
-        if (res.ok) {
-          msg.style.color = 'green';
-          msg.innerText = '¡Solicitud enviada con éxito!';
+        const resData = await res.json();
+
+        if (res.ok && resData.solicitud) {
+          msg.innerText = '';
           document.getElementById('form-solicitud').reset();
           document.getElementById('preview-img').style.display = 'none';
           fotoBase64 = null;
+
+          // Transición directa al chat de la solicitud creada
+          abrirChatCliente(resData.solicitud);
         } else {
-          // Lectura detallada del error recibido
-          const errorText = await res.text();
-          let errorMessage = 'Verifica los datos';
-          try {
-            const errData = JSON.parse(errorText);
-            errorMessage = errData.error || errData.message || errorMessage;
-          } catch (e) {
-            if (res.status === 413) {
-              errorMessage = 'La imagen es demasiado pesada para el servidor.';
-            }
-          }
-          
           msg.style.color = 'red';
-          msg.innerText = 'Error al enviar: ' + errorMessage;
+          msg.innerText = 'Error: ' + (resData.error || 'No se pudo procesar.');
         }
       } catch (err) {
         msg.style.color = 'red';
@@ -154,6 +196,125 @@
         btn.disabled = false;
       }
     });
+
+    // Abrir Vista del Chat
+    function abrirChatCliente(solicitud) {
+      solicitudActiva = solicitud;
+      document.getElementById('section-form').style.display = 'none';
+      document.getElementById('section-chat').style.display = 'block';
+
+      document.getElementById('info-solicitud').innerHTML = `
+        <strong>Vehículo:</strong> ${solicitud.marca} ${solicitud.modelo} (${solicitud.anio})<br>
+        <strong>Pieza:</strong> ${solicitud.repuesto}<br>
+        <strong>Estado:</strong> ${solicitud.estado === 'Aceptada' ? '🟢 Respondida por tienda' : '🟡 Esperando tiendas...'}
+      `;
+
+      cargarMensajesCliente();
+      if (intervalChat) clearInterval(intervalChat);
+      intervalChat = setInterval(cargarMensajesCliente, 3000);
+    }
+
+    // Cargar Mensajes
+    async function cargarMensajesCliente() {
+      if (!solicitudActiva) return;
+      try {
+        const res = await fetch(`${API_URL}/chat/${solicitudActiva.id}`);
+        const mensajes = await res.json();
+        const chatBox = document.getElementById('chat-box');
+        const btnAceptar = document.getElementById('btn-aceptar-oferta');
+        chatBox.innerHTML = '';
+
+        if (!mensajes || mensajes.length === 0) {
+          chatBox.innerHTML = '<p style="text-align: center; color: #888; margin-top: 80px;">Las tiendas están revisando tu solicitud. Recibirás su propuesta aquí en tiempo real...</p>';
+          btnAceptar.style.display = 'none';
+          return;
+        }
+
+        let hayRespuestaTienda = false;
+
+        mensajes.forEach(m => {
+          if (m.remitente === 'Tienda') hayRespuestaTienda = true;
+
+          const div = document.createElement('div');
+          div.className = `msg ${m.remitente === 'Cliente' ? 'msg-cliente' : 'msg-tienda'}`;
+          div.innerHTML = `
+            <strong>${m.remitente}:</strong> ${m.texto}
+            <span class="msg-meta">${m.fecha}</span>
+          `;
+          chatBox.appendChild(div);
+        });
+
+        // Mostrar botón de aceptación hacia WhatsApp si la tienda respondió
+        if (hayRespuestaTienda) {
+          btnAceptar.style.display = 'block';
+          const textoMensajeWS = encodeURIComponent(`Hola, acepto la propuesta de cotización para mi repuesto: ${solicitudActiva.repuesto} (${solicitudActiva.marca} ${solicitudActiva.modelo}).`);
+          btnAceptar.href = `https://wa.me/?text=${textoMensajeWS}`;
+        } else {
+          btnAceptar.style.display = 'none';
+        }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (err) {
+        console.error('Error al cargar mensajes:', err);
+      }
+    }
+
+    // Enviar mensaje en el chat
+    async function enviarMensajeCliente() {
+      const input = document.getElementById('chat-input');
+      const texto = input.value.trim();
+      if (!texto || !solicitudActiva) return;
+
+      try {
+        const res = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            solicitudId: solicitudActiva.id,
+            remitente: 'Cliente',
+            texto: texto
+          })
+        });
+
+        if (res.ok) {
+          input.value = '';
+          cargarMensajesCliente();
+        }
+      } catch (err) {
+        alert('Error al enviar el mensaje');
+      }
+    }
+
+    // Buscar por WhatsApp si el cliente regresa más tarde
+    async function buscarSolicitudPorWhatsapp() {
+      const wsInput = document.getElementById('consultar-whatsapp').value.trim();
+      if (!wsInput) {
+        alert('Ingresa tu número de WhatsApp para consultar.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/solicitudes`);
+        const solicitudes = await res.json();
+        
+        const miSolicitud = solicitudes.find(s => s.cliente_whatsapp === wsInput);
+
+        if (miSolicitud) {
+          abrirChatCliente(miSolicitud);
+        } else {
+          alert('No se encontraron solicitudes previas con ese número de WhatsApp.');
+        }
+      } catch (err) {
+        alert('Error al consultar el servidor.');
+      }
+    }
+
+    function volverAlFormulario() {
+      if (intervalChat) clearInterval(intervalChat);
+      solicitudActiva = null;
+      document.getElementById('section-chat').style.display = 'none';
+      document.getElementById('section-form').style.display = 'block';
+    }
   </script>
 
 </body>
