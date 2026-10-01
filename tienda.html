@@ -1,29 +1,145 @@
-<div class="card p-3 mb-3 shadow-sm">
-  <h5 class="fw-bold">Solicitudes de Clientes</h5>
-  
-  <!-- Contenedor de la solicitud -->
-  <div class="solicitud-item border rounded p-3 bg-light">
-    <div class="fw-bold mb-1">Suzuki Carry (1999)</div>
-    <div><strong>Pieza:</strong> Kit de embrague</div>
-    <div><strong>VIN:</strong> JSADYA345VBM</div>
-    <div class="text-muted small mb-3">
-      <strong>WhatsApp:</strong> Protegido hasta aceptar pedido
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepuestoExpress - Panel Tienda</title>
+
+  <!-- Cargamos Bootstrap CSS para los estilos de la interfaz -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .main-container {
+      max-width: 450px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .panel-card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo-img {
+      max-width: 220px;
+      height: auto;
+    }
+    .panel-title {
+      color: #007bff;
+      font-weight: 800;
+      font-size: 1.5rem;
+      line-height: 1.2;
+    }
+    .btn-cerrar {
+      background-color: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+    .section-title {
+      color: #007bff;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-top: 20px;
+      margin-bottom: 15px;
+    }
+    .solicitud-box {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .solicitud-titulo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #212529;
+    }
+    .btn-enviar {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    
+    <!-- LOGO SUPERIOR -->
+    <div class="logo-container">
+      <img src="logo.png" alt="RepuestoExpress" class="logo-img" onerror="this.style.display='none'">
     </div>
 
-    <!-- Formulario para responder el precio -->
-    <div class="d-flex gap-2">
-      <input 
-        type="number" 
-        step="0.01" 
-        class="form-control" 
-        placeholder="Precio $" 
-        id="input_precio" 
-        inputmode="decimal" 
-        autocomplete="off"
-      />
-      <button type="button" class="btn btn-success fw-bold text-nowrap" onclick="enviarPrecio()">
-        Enviar Precio
-      </button>
+    <!-- TARJETA PRINCIPAL DEL PANEL -->
+    <div class="panel-card">
+      
+      <!-- ENCABEZADO Y BOTÓN CERRAR SESIÓN -->
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <h1 class="panel-title m-0">
+          Panel:<br>AutoRepuestos Express
+        </h1>
+        <button class="btn-cerrar" onclick="cerrarSesion()">
+          Cerrar Sesión
+        </button>
+      </div>
+
+      <hr class="my-3" style="opacity: 0.1;">
+
+      <!-- TÍTULO SECCIÓN -->
+      <h2 class="section-title">Solicitudes de Clientes</h2>
+
+      <!-- CONTENEDOR DE SOLICITUDES -->
+      <div id="contenedorSolicitudes">
+        
+        <!-- TARJETA DE SOLICITUD -->
+        <div class="solicitud-box shadow-sm mb-3">
+          <div class="solicitud-titulo mb-1">Suzuki Carry (1999)</div>
+          <div class="mb-1"><strong>Pieza:</strong> Kit de embrague</div>
+          <div class="text-muted small mb-1"><strong>VIN:</strong> JSADYA345VBM</div>
+          <div class="text-muted small mb-3">
+            <strong>WhatsApp:</strong> Protegido hasta aceptar pedido
+          </div>
+
+          <!-- FORMULARIO DE ENVÍO DE PRECIO -->
+          <form onsubmit="event.preventDefault(); enviarPrecio('1');" class="d-flex gap-2">
+            <input 
+              type="number" 
+              step="0.01" 
+              class="form-control" 
+              placeholder="Precio $" 
+              id="precio_1" 
+              inputmode="decimal" 
+              autocomplete="off"
+              required
+            >
+            <button type="submit" class="btn-enviar text-nowrap">
+              Enviar Precio
+            </button>
+          </form>
+        </div>
+
+      </div>
+
     </div>
   </div>
-</div>
+
+  <!-- SCRIPTS DE NAVEGACIÓN Y SOCKETS -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="tienda.js"></script>
+
+</body>
+</html>
