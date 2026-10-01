@@ -18,7 +18,7 @@ let tiendas = [
 let solicitudes = [];
 let mensajesChat = [];
 
-// --- RUTAS DE PÁGINAS HTML ---
+// --- RUTAS DE NAVEGACIÓN (PÁGINAS HTML) ---
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -34,8 +34,6 @@ app.get('/admin.html', (req, res) => {
 // ======================================================
 // 1. RUTAS CLIENTE
 // ======================================================
-
-// Crear solicitud
 app.post('/api/solicitudes', (req, res) => {
   try {
     const { marca, modelo, anio, repuesto, vin, foto_url, cliente_whatsapp } = req.body;
@@ -66,12 +64,10 @@ app.post('/api/solicitudes', (req, res) => {
   }
 });
 
-// Obtener todas las solicitudes
 app.get('/api/solicitudes', (req, res) => {
   return res.json(solicitudes);
 });
 
-// Obtener una solicitud específica por su ID
 app.get('/api/solicitudes/:id', (req, res) => {
   const solicitud = solicitudes.find(s => s.id == req.params.id);
   if (!solicitud) return res.status(404).json({ error: 'Solicitud no encontrada' });
@@ -90,7 +86,7 @@ app.post('/api/tiendas/login', (req, res) => {
   }
 
   if (!tienda.activa) {
-    return res.status(403).json({ error: 'Esta tienda se encuentra desactivada.' });
+    return res.status(403).json({ error: 'Esta tienda se encuentra desactivada por el administrador.' });
   }
 
   return res.json({
@@ -157,6 +153,32 @@ app.get('/api/admin/tiendas', (req, res) => {
   return res.json(tiendas);
 });
 
+// 🔴 CREAR NUEVA TIENDA DESDE ADMIN
+app.post('/api/admin/tiendas', (req, res) => {
+  const { nombre, email, password } = req.body;
+
+  if (!nombre || !email || !password) {
+    return res.status(400).json({ error: 'Todos los campos son obligatorios para crear la tienda.' });
+  }
+
+  const existe = tiendas.some(t => t.email === email);
+  if (existe) {
+    return res.status(400).json({ error: 'Ya existe una tienda registrada con ese correo electrónico.' });
+  }
+
+  const nuevaTienda = {
+    id: Date.now(),
+    nombre,
+    email,
+    password,
+    activa: true
+  };
+
+  tiendas.push(nuevaTienda);
+  return res.status(201).json({ message: 'Tienda creada exitosamente', tienda: nuevaTienda });
+});
+
+// Cambiar estado de tienda (Activar / Desactivar)
 app.post('/api/admin/tiendas/:id/toggle', (req, res) => {
   const { id } = req.params;
   const tienda = tiendas.find(t => t.id == id);
