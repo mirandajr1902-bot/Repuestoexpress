@@ -3,254 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress - Portal de Tiendas</title>
+  <title>Portal Tienda</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
-    .container { max-width: 800px; margin: 0 auto; }
-    .card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    h2, h3 { margin-top: 0; color: #007bff; }
-    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
-    input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; }
+    input, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
     button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .btn-danger { background: #dc3545; }
-    .btn-danger:hover { background: #bd2130; }
-    .btn-secondary { background: #6c757d; }
-    .btn-secondary:hover { background: #5a6268; }
-    .btn-aceptar { background: #28a745; width: auto; padding: 8px 16px; margin: 0; }
-    .btn-aceptar:hover { background: #218838; }
-    .btn-chat { background: #17a2b8; width: auto; padding: 8px 16px; margin: 0; }
-    .btn-chat:hover { background: #138496; }
-
-    .solicitud-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .solicitud-info { max-width: 70%; }
-    .solicitud-foto { max-width: 100px; max-height: 100px; border-radius: 6px; margin-top: 8px; object-fit: cover; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-top: 5px; }
-    .badge-pendiente { background: #ffeba2; color: #856404; }
-    .badge-aceptada { background: #d4edda; color: #155724; }
-
-    /* Estilos del Chat */
-    #chat-box { height: 280px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fdfdfd; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-    .msg { padding: 8px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; word-break: break-word; }
-    .msg-tienda { background: #007bff; color: white; align-self: flex-end; text-align: right; }
-    .msg-cliente { background: #e9ecef; color: #333; align-self: flex-start; }
-    .msg-meta { font-size: 10px; opacity: 0.8; display: block; margin-top: 4px; }
+    .card-solicitud { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fafafa; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+    .badge-exito { background: #d4edda; color: #155724; }
+    .badge-espera { background: #fff3cd; color: #856404; }
   </style>
 </head>
 <body>
 
   <div class="container">
-
-    <!-- 1. FORMULARIO DE LOGIN TIENDA -->
-    <div id="section-login" class="card">
-      <h2>🔑 Acceso a Tiendas de Repuestos</h2>
+    <!-- LOGIN -->
+    <div id="sec-login">
+      <h2>Incluso Sesión Tienda</h2>
       <form id="form-login">
-        <label>Correo Electrónico:</label>
-        <input type="email" id="login-email" placeholder="tienda@ejemplo.com" required>
-
-        <label>Contraseña:</label>
-        <input type="password" id="login-password" placeholder="123" required>
-
-        <button type="submit">Ingresar al Panel</button>
+        <label>Correo:</label><input type="email" id="email" required>
+        <label>Clave:</label><input type="password" id="pass" required>
+        <button type="submit">Ingresar</button>
       </form>
-      <p id="login-error" style="color: red; text-align: center; margin-top: 15px; font-weight: bold;"></p>
     </div>
 
-    <!-- 2. PANEL PRINCIPAL DE SOLICITUDES -->
-    <div id="section-panel" class="card" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-        <h2 id="tienda-nombre-header">Panel de Tienda</h2>
-        <button onclick="logout()" class="btn-danger" style="width: auto;">Cerrar Sesión</button>
-      </div>
-
-      <h3 style="margin-top: 20px;">Solicitudes Disponibles de Clientes</h3>
-      <div id="lista-solicitudes">Cargando solicitudes...</div>
+    <!-- PANEL TIENDA -->
+    <div id="sec-panel" style="display:none;">
+      <h2 id="tienda-header">Panel de Solicitudes</h2>
+      <div id="lista-solicitudes">Cargando...</div>
     </div>
 
-    <!-- 3. CHAT INTERNO CON EL CLIENTE -->
-    <div id="section-chat" class="card" style="display: none;">
-      <button onclick="cerrarChat()" class="btn-secondary" style="width: auto; margin-bottom: 15px;">← Volver al Panel</button>
-      <h3 id="chat-titulo">Chat de Cotización</h3>
-      
-      <div id="chat-box"></div>
-
-      <div style="display: flex; gap: 10px;">
-        <input type="text" id="chat-input" placeholder="Escribe el precio o respuesta al cliente..." style="margin: 0;">
-        <button onclick="enviarMensajeChat()" style="width: 120px; margin: 0;">Enviar</button>
+    <!-- CHAT TIENDA -->
+    <div id="sec-chat" style="display:none;">
+      <button onclick="volverPanel()" style="width:auto; background:#6c757d;">← Volver</button>
+      <h3>Chat con Cliente</h3>
+      <div id="chat-box" style="height:200px; overflow-y:auto; border:1px solid #ccc; padding:10px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:5px;">
+        <input type="text" id="chat-input-tienda" placeholder="Escribe mensaje...">
+        <button onclick="enviarMensajeTienda()" style="width:100px;">Enviar</button>
       </div>
     </div>
-
   </div>
 
   <script>
-    const API_URL = 'https://repuestoexpress.onrender.com/api';
+    const API = 'https://repuestoexpress.onrender.com/api';
     let tiendaActual = null;
-    let solicitudActivaId = null;
-    let intervalChat = null;
+    let cotizacionSeleccionada = null;
 
-    // --- INICIAR SESIÓN DE TIENDA ---
     document.getElementById('form-login').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-
-      try {
-        const res = await fetch(`${API_URL}/tiendas/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          tiendaActual = data.tienda;
-          document.getElementById('section-login').style.display = 'none';
-          document.getElementById('section-panel').style.display = 'block';
-          document.getElementById('tienda-nombre-header').innerText = `Bienvenido: ${tiendaActual.nombre}`;
-          cargarSolicitudes();
-        } else {
-          document.getElementById('login-error').innerText = data.error || 'Credenciales incorrectas.';
-        }
-      } catch (err) {
-        document.getElementById('login-error').innerText = 'Error de conexión con el servidor.';
-      }
+      const res = await fetch(`${API}/tiendas/login`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('pass').value })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        tiendaActual = data.tienda;
+        document.getElementById('sec-login').style.display = 'none';
+        document.getElementById('sec-panel').style.display = 'block';
+        document.getElementById('tienda-header').innerText = `Panel: ${tiendaActual.nombre}`;
+        cargarSolicitudes();
+      } else { alert(data.error); }
     });
 
-    // --- CARGAR LISTA DE SOLICITUDES DE CLIENTES ---
     async function cargarSolicitudes() {
-      try {
-        const res = await fetch(`${API_URL}/solicitudes`);
-        const solicitudes = await res.json();
-        const contenedor = document.getElementById('lista-solicitudes');
-        contenedor.innerHTML = '';
+      const res = await fetch(`${API}/solicitudes/tienda?tiendaId=${tiendaActual.id}`);
+      const solicitudes = await res.json();
+      const cont = document.getElementById('lista-solicitudes');
+      cont.innerHTML = '';
 
-        if (!solicitudes || solicitudes.length === 0) {
-          contenedor.innerHTML = '<p>No hay solicitudes pendientes en este momento.</p>';
-          return;
-        }
-
-        solicitudes.forEach(sol => {
-          const div = document.createElement('div');
-          div.className = 'solicitud-item';
-          div.innerHTML = `
-            <div class="solicitud-info">
-              <strong>${sol.marca} ${sol.modelo} (${sol.anio})</strong><br>
-              <span><strong>Pieza:</strong> ${sol.repuesto}</span><br>
-              ${sol.vin ? `<small><strong>VIN:</strong> ${sol.vin}</small><br>` : ''}
-              <small><strong>WhatsApp:</strong> ${sol.cliente_whatsapp}</small><br>
-              ${sol.foto_url ? `<img src="${sol.foto_url}" class="solicitud-foto" alt="Foto del repuesto">` : ''}<br>
-              <span class="badge ${sol.estado === 'Aceptada' ? 'badge-aceptada' : 'badge-pendiente'}">
-                ${sol.estado === 'Aceptada' ? `Aceptada por: ${sol.tiendaAsignada || 'Tienda'}` : 'Pendiente'}
-              </span>
+      solicitudes.forEach(s => {
+        const cot = s.miCotizacion;
+        const div = document.createElement('div');
+        div.className = 'card-solicitud';
+        div.innerHTML = `
+          <strong>${s.marca} ${s.modelo} (${s.anio})</strong><br>
+          <span>Pieza: ${s.repuesto}</span><br>
+          <small><strong>WhatsApp Cliente:</strong> ${s.cliente_whatsapp}</small><br><br>
+          
+          ${cot ? `
+            <span class="badge ${cot.estado === 'Finalizada' ? 'badge-exito' : 'badge-espera'}">               Cotizado: $${cot.precio} | Estado: ${cot.estado}${cot.metodoEntrega ? `(${cot.metodoEntrega})` : ''}
+            </span><br><br>
+            ${cot.estado === 'Aceptada' || cot.estado === 'Finalizada' ? `
+              <button onclick="abrirChat(${cot.id})">💬 Entrar al Chat</button>
+            ` : '<small>Esperando respuesta del cliente...</small>'}
+          ` : `
+            <div style="display:flex; gap:5px;">
+              <input type="number" id="precio-${s.id}" placeholder="Precio $">
+              <button onclick="enviarCotizacion(${s.id})">Enviar Cotización</button>
             </div>
-            <div>
-              ${sol.estado === 'Aceptada' 
-                ? `<button class="btn-chat" onclick="abrirChat(${sol.id}, '${sol.marca} ${sol.modelo} -${sol.repuesto}')">💬 Abrir Chat</button>`
-                : `<button class="btn-aceptar" onclick="aceptarSolicitud(${sol.id})">✅ Aceptar Solicitud</button>`
-              }
-            </div>
-          `;
-          contenedor.appendChild(div);
-        });
-      } catch (err) {
-        console.error('Error al cargar solicitudes:', err);
-      }
+          `}
+        `;
+        cont.appendChild(div);
+      });
     }
 
-    // --- ACEPTAR SOLICITUD ---
-    async function aceptarSolicitud(id) {
-      try {
-        const res = await fetch(`${API_URL}/solicitudes/${id}/aceptar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tiendaNombre: tiendaActual.nombre })
-        });
+    async function enviarCotizacion(solicitudId) {
+      const precio = document.getElementById(`precio-${solicitudId}`).value;
+      if (!precio) return alert('Ingresa un precio');
 
-        if (res.ok) {
-          cargarSolicitudes();
-        } else {
-          alert('No se pudo aceptar la solicitud.');
-        }
-      } catch (err) {
-        alert('Error al conectar con el servidor.');
-      }
-    }
-
-    // --- FUNCIONES DEL CHAT ---
-    function abrirChat(solicitudId, titulo) {
-      solicitudActivaId = solicitudId;
-      document.getElementById('section-panel').style.display = 'none';
-      document.getElementById('section-chat').style.display = 'block';
-      document.getElementById('chat-titulo').innerText = `Chat: ${titulo}`;
-
-      cargarMensajes();
-      intervalChat = setInterval(cargarMensajes, 3000); // Consulta mensajes cada 3 segundos
-    }
-
-    function cerrarChat() {
-      clearInterval(intervalChat);
-      solicitudActivaId = null;
-      document.getElementById('section-chat').style.display = 'none';
-      document.getElementById('section-panel').style.display = 'block';
+      await fetch(`${API}/cotizaciones`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ solicitudId, tiendaId: tiendaActual.id, tiendaNombre: tiendaActual.nombre, precio })
+      });
       cargarSolicitudes();
     }
 
-    async function cargarMensajes() {
-      if (!solicitudActivaId) return;
-      try {
-        const res = await fetch(`${API_URL}/chat/${solicitudActivaId}`);
-        const mensajes = await res.json();
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
-
-        mensajes.forEach(m => {
-          const div = document.createElement('div');
-          div.className = `msg ${m.remitente === 'Tienda' ? 'msg-tienda' : 'msg-cliente'}`;
-          div.innerHTML = `
-            <strong>${m.remitente}:</strong> ${m.texto}
-            <span class="msg-meta">${m.fecha}</span>
-          `;
-          chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-      } catch (err) {
-        console.error('Error al cargar mensajes:', err);
-      }
+    function abrirChat(cotId) {
+      cotizacionSeleccionada = cotId;
+      document.getElementById('sec-panel').style.display = 'none';
+      document.getElementById('sec-chat').style.display = 'block';
+      cargarMensajesTienda();
     }
 
-    async function enviarMensajeChat() {
-      const input = document.getElementById('chat-input');
-      const texto = input.value.trim();
-      if (!texto || !solicitudActivaId) return;
-
-      try {
-        const res = await fetch(`${API_URL}/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            solicitudId: solicitudActivaId,
-            remitente: 'Tienda',
-            texto: texto
-          })
-        });
-
-        if (res.ok) {
-          input.value = '';
-          cargarMensajes();
-        }
-      } catch (err) {
-        alert('Error al enviar el mensaje');
-      }
+    async function cargarMensajesTienda() {
+      const res = await fetch(`${API}/chat/cotizacion/${cotizacionSeleccionada}`);
+      const msgs = await res.json();
+      const box = document.getElementById('chat-box');
+      box.innerHTML = '';
+      msgs.forEach(m => {
+        const div = document.createElement('div');
+        div.innerText = `${m.remitente}: ${m.texto}`;
+        box.appendChild(div);
+      });
     }
 
-    function logout() {
-      tiendaActual = null;
-      document.getElementById('section-panel').style.display = 'none';
-      document.getElementById('section-login').style.display = 'block';
-      document.getElementById('login-email').value = '';
-      document.getElementById('login-password').value = '';
+    async function enviarMensajeTienda() {
+      const input = document.getElementById('chat-input-tienda');
+      if (!input.value.trim()) return;
+      await fetch(`${API}/chat`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ cotizacionId: cotizacionSeleccionada, remitente: 'Tienda', texto: input.value.trim() })
+      });
+      input.value = '';
+      cargarMensajesTienda();
+    }
+
+    function volverPanel() {
+      document.getElementById('sec-chat').style.display = 'none';
+      document.getElementById('sec-panel').style.display = 'block';
+      cargarSolicitudes();
     }
   </script>
-
 </body>
 </html>
