@@ -3,143 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepuestoExpress - Panel Tienda</title>
-
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <title>RepuestoExpress - Portal Tiendas</title>
   <style>
-    body {
-      background-color: #f4f6f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    .main-container {
-      max-width: 450px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    .panel-card {
-      background-color: #ffffff;
-      border-radius: 16px;
-      padding: 24px 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    .logo-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo-img {
-      max-width: 200px;
-      height: auto;
-    }
-    .panel-title {
-      color: #007bff;
-      font-weight: 800;
-      font-size: 1.4rem;
-      line-height: 1.2;
-    }
-    .btn-cerrar {
-      background-color: #dc3545;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-weight: bold;
-      font-size: 0.85rem;
-    }
-    .section-title {
-      color: #007bff;
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-top: 15px;
-      margin-bottom: 15px;
-    }
-    .solicitud-box {
-      background-color: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .solicitud-titulo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: #212529;
-    }
-    .btn-enviar {
-      background-color: #28a745;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 16px;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f6f8; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .header-logo { text-align: center; margin-bottom: 15px; }
+    .header-logo img { max-width: 160px; height: auto; border-radius: 8px; }
+    h2, h3 { margin-top: 0; color: #007bff; }
+    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
+    button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .btn-danger { background: #dc3545; }
+    .btn-secondary { background: #6c757d; }
+    .btn-success { background: #28a745; }
+
+    .solicitud-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+    .solicitud-foto { max-width: 100px; max-height: 100px; border-radius: 6px; margin-top: 8px; object-fit: cover; }
+    .badge { display: inline-block; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-top: 8px; }
+    .badge-espera { background: #fff3cd; color: #856404; }
+    .badge-aceptada { background: #cce5ff; color: #004085; }
+    .badge-exito { background: #d4edda; color: #155724; }
+
+    #chat-box { height: 260px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fdfdfd; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { padding: 8px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; word-break: break-word; }
+    .msg-tienda { background: #007bff; color: white; align-self: flex-end; }
+    .msg-cliente { background: #e9ecef; color: #333; align-self: flex-start; }
+    .msg-meta { font-size: 10px; opacity: 0.8; display: block; margin-top: 4px; }
   </style>
 </head>
 <body>
 
-  <div class="main-container">
-    
-    <!-- LOGO SUPERIOR -->
-    <div class="logo-container">
-      <img src="logo.png" alt="RepuestoExpress" class="logo-img" onerror="this.style.display='none'">
+  <div class="container">
+    <div class="header-logo">
+      <img src="logo.png" alt="RepuestoExpress Logo" onerror="this.onerror=null; this.src='logo.jpg';">
     </div>
 
-    <!-- TARJETA PRINCIPAL DEL PANEL -->
-    <div class="panel-card">
-      
-      <!-- ENCABEZADO Y BOTÓN CERRAR SESIÓN -->
-      <div class="d-flex justify-content-between align-items-start mb-3">
-        <h1 class="panel-title m-0">
-          Panel:<br>AutoRepuestos Express
-        </h1>
-        <button type="button" class="btn-cerrar" onclick="cerrarSesion()">
-          Cerrar Sesión
-        </button>
+    <!-- LOGIN -->
+    <div id="section-login" class="card">
+      <h2>🔑 Acceso Tiendas</h2>
+      <form id="form-login">
+        <label>Correo Electrónico:</label><input type="email" id="login-email" required>
+        <label>Contraseña:</label><input type="password" id="login-password" required>
+        <button type="submit">Ingresar al Panel</button>
+      </form>
+      <p id="login-error" style="color: red; text-align: center; margin-top: 15px;"></p>
+    </div>
+
+    <!-- PANEL -->
+    <div id="section-panel" class="card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+        <h2 id="tienda-nombre-header">Panel de Tienda</h2>
+        <button onclick="logout()" class="btn-danger" style="width: auto;">Cerrar Sesión</button>
       </div>
 
-      <hr class="my-3" style="opacity: 0.1;">
+      <h3 style="margin-top: 20px;">Solicitudes de Clientes</h3>
+      <div id="lista-solicitudes">Cargando solicitudes...</div>
+    </div>
 
-      <!-- TÍTULO SECCIÓN -->
-      <h2 class="section-title">Solicitudes de Clientes</h2>
-
-      <!-- CONTENEDOR DE SOLICITUDES -->
-      <div id="contenedorSolicitudes">
-        
-        <!-- TARJETA DE SOLICITUD -->
-        <div class="solicitud-box shadow-sm mb-3">
-          <div class="solicitud-titulo mb-1">Suzuki Carry (1999)</div>
-          <div class="mb-1"><strong>Pieza:</strong> Kit de embrague</div>
-          <div class="text-muted small mb-1"><strong>VIN:</strong> JSADYA345VBM</div>
-          <div class="text-muted small mb-3">
-            <strong>WhatsApp:</strong> Protegido hasta aceptar pedido
-          </div>
-
-          <!-- FORMULARIO DE ENVÍO DE PRECIO -->
-          <form id="form_precio_1" onsubmit="enviarPrecio(event, '1')" class="d-flex gap-2">
-            <input 
-              type="number" 
-              step="0.01" 
-              class="form-control" 
-              placeholder="Precio $" 
-              id="precio_1" 
-              inputmode="decimal" 
-              autocomplete="off"
-              required
-            >
-            <button type="submit" class="btn-enviar text-nowrap">
-              Enviar Precio
-            </button>
-          </form>
-        </div>
-
+    <!-- CHAT -->
+    <div id="section-chat" class="card" style="display: none;">
+      <button onclick="cerrarChat()" class="btn-secondary" style="width: auto; margin-bottom: 15px;">← Volver al Panel</button>
+      <h3 id="chat-titulo">Chat de Cotización</h3>
+      <div id="chat-box"></div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." style="margin: 0;">
+        <button onclick="enviarMensajeTienda()" style="width: 110px; margin: 0;">Enviar</button>
       </div>
-
     </div>
   </div>
 
-  <!-- Carga de Socket.io y lógica cliente -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="tienda.js"></script>
+  <script>
+    const API_URL = 'https://repuestoexpress.onrender.com/api';
+    let tiendaActual = null;
+    let cotizacionActivaId = null;
+    let intervalChat = null;
+    let intervalSolicitudes = null;
 
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch(`${API_URL}/tiendas/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('login-email').value.trim(), password: document.getElementById('login-password').value.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        tiendaActual = data.tienda;
+        document.getElementById('section-login').style.display = 'none';
+        document.getElementById('section-panel').style.display = 'block';
+        document.getElementById('tienda-nombre-header').innerText = `Panel: ${tiendaActual.nombre}`;
+        cargarSolicitudes();
+        intervalSolicitudes = setInterval(cargarSolicitudes, 3000);
+      } else {
+        document.getElementById('login-error').innerText = data.error || 'Acceso incorrecto';
+      }
+    });
+
+    async function cargarSolicitudes() {
+      if (!tiendaActual) return;
+      try {
+        const res = await fetch(`${API_URL}/solicitudes/tienda?tiendaId=${tiendaActual.id}`);
+        const solicitudes = await res.json();
+        const contenedor = document.getElementById('lista-solicitudes');
+        contenedor.innerHTML = '';
+
+        if (!solicitudes || solicitudes.length === 0) {
+          contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+          return;
+        }
+
+        solicitudes.forEach(sol => {
+          const cot = sol.miCotizacion;
+          const div = document.createElement('div');
+          div.className = 'solicitud-card';
+
+          let estadoHTML = '';
+          if (cot) {
+            if (cot.estado === 'Finalizada') {
+              estadoHTML = `<span class="badge badge-exito">🟢 Pedido Finalizado (${cot.metodoEntrega}) - Precio: $${cot.precio}</span>`;
+            } else if (cot.estado === 'Aceptada') {
+              estadoHTML = `<span class="badge badge-aceptada">🔵 Oferta Aceptada - Precio: $${cot.precio}</span>`;
+            } else {
+              estadoHTML = `<span class="badge badge-espera">🟡 Oferta Enviada ($${cot.precio}) - Esperando al Cliente</span>`;
+            }
+          }
+
+          div.innerHTML = `
+            <div>
+              <strong>${sol.marca} ${sol.modelo} (${sol.anio})</strong><br>
+              <span><strong>Pieza:</strong> ${sol.repuesto}</span><br>
+              ${sol.vin ? `<small><strong>VIN:</strong> ${sol.vin}</small><br>` : ''}
+              <small><strong>WhatsApp:</strong> ${sol.cliente_whatsapp}</small><br>
+              ${sol.foto_url ? `<img src="${sol.foto_url}" class="solicitud-foto"><br>` : ''}
+              ${estadoHTML}
+            </div>
+            
+            <div style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px;">
+              ${!cot ? `
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="precio-${sol.id}" placeholder="Precio $" style="margin: 0;">
+                  <button class="btn-success" onclick="enviarCotizacion(${sol.id})" style="width: 160px; margin: 0;">Enviar Precio</button>
+                </div>
+              ` : `
+                ${(cot.estado === 'Aceptada' || cot.estado === 'Finalizada') ? `
+                  <button onclick="abrirChat(${cot.id}, '${sol.marca} ${sol.modelo}')">💬 Entrar al Chat</button>
+                ` : '<small style="color: #666;">Esperando respuesta del cliente...</small>'}
+              `}
+            </div>
+          `;
+          contenedor.appendChild(div);
+        });
+      } catch (err) {}
+    }
+
+    async function enviarCotizacion(solicitudId) {
+      const precio = document.getElementById(`precio-${solicitudId}`).value.trim();
+      if (!precio) return alert('Ingresa un precio');
+
+      await fetch(`${API_URL}/cotizaciones`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ solicitudId, tiendaId: tiendaActual.id, tiendaNombre: tiendaActual.nombre, precio })
+      });
+      cargarSolicitudes();
+    }
+
+    function abrirChat(cotizacionId, autoInfo) {
+      cotizacionActivaId = cotizacionId;
+      document.getElementById('section-panel').style.display = 'none';
+      document.getElementById('section-chat').style.display = 'block';
+      document.getElementById('chat-titulo').innerText = `Chat: ${autoInfo}`;
+
+      cargarMensajesTienda();
+      if (intervalChat) clearInterval(intervalChat);
+      intervalChat = setInterval(cargarMensajesTienda, 3000);
+    }
+
+    function cerrarChat() {
+      if (intervalChat) clearInterval(intervalChat);
+      cotizacionActivaId = null;
+      document.getElementById('section-chat').style.display = 'none';
+      document.getElementById('section-panel').style.display = 'block';
+      cargarSolicitudes();
+    }
+
+    async function cargarMensajesTienda() {
+      if (!cotizacionActivaId) return;
+      const res = await fetch(`${API_URL}/chat/cotizacion/${cotizacionActivaId}`);
+      const mensajes = await res.json();
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML = '';
+
+      mensajes.forEach(m => {
+        const div = document.createElement('div');
+        div.className = `msg ${m.remitente === 'Tienda' ? 'msg-tienda' : 'msg-cliente'}`;
+        div.innerHTML = `<strong>${m.remitente}:</strong> ${m.texto}<span class="msg-meta">${m.fecha}</span>`;
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function enviarMensajeTienda() {
+      const input = document.getElementById('chat-input');
+      if (!input.value.trim() || !cotizacionActivaId) return;
+
+      await fetch(`${API_URL}/chat`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cotizacionId: cotizacionActivaId, remitente: 'Tienda', texto: input.value.trim() })
+      });
+      input.value = '';
+      cargarMensajesTienda();
+    }
+
+    function logout() {
+      if (intervalChat) clearInterval(intervalChat);
+      if (intervalSolicitudes) clearInterval(intervalSolicitudes);
+      tiendaActual = null;
+      document.getElementById('section-panel').style.display = 'none';
+      document.getElementById('section-login').style.display = 'block';
+    }
+  </script>
 </body>
 </html>
