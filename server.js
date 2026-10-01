@@ -18,14 +18,24 @@ let tiendas = [
 let solicitudes = [];
 let mensajesChat = [];
 
-// Ruta principal abre el formulario de cliente
+// --- RUTAS DE PÁGINAS HTML ---
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/tienda.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'tienda.html'));
+});
+
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // ======================================================
 // 1. RUTAS CLIENTE
 // ======================================================
+
+// Crear solicitud
 app.post('/api/solicitudes', (req, res) => {
   try {
     const { marca, modelo, anio, repuesto, vin, foto_url, cliente_whatsapp } = req.body;
@@ -52,8 +62,20 @@ app.post('/api/solicitudes', (req, res) => {
     return res.status(200).json({ message: 'Solicitud enviada con éxito', solicitud: nuevaSolicitud });
 
   } catch (error) {
-    return res.status(500).json({ error: 'Error en el servidor' });
+    return res.status(500).json({ error: 'Error interno en el servidor' });
   }
+});
+
+// Obtener todas las solicitudes
+app.get('/api/solicitudes', (req, res) => {
+  return res.json(solicitudes);
+});
+
+// Obtener una solicitud específica por su ID
+app.get('/api/solicitudes/:id', (req, res) => {
+  const solicitud = solicitudes.find(s => s.id == req.params.id);
+  if (!solicitud) return res.status(404).json({ error: 'Solicitud no encontrada' });
+  return res.json(solicitud);
 });
 
 // ======================================================
@@ -68,17 +90,13 @@ app.post('/api/tiendas/login', (req, res) => {
   }
 
   if (!tienda.activa) {
-    return res.status(403).json({ error: 'Esta tienda se encuentra desactivada por el administrador.' });
+    return res.status(403).json({ error: 'Esta tienda se encuentra desactivada.' });
   }
 
   return res.json({
     message: 'Inicio de sesión exitoso',
     tienda: { id: tienda.id, nombre: tienda.nombre }
   });
-});
-
-app.get('/api/solicitudes', (req, res) => {
-  return res.json(solicitudes);
 });
 
 app.post('/api/solicitudes/:id/aceptar', (req, res) => {
@@ -127,22 +145,18 @@ app.post('/api/chat', (req, res) => {
 // ======================================================
 // 4. RUTAS ADMINISTRADOR
 // ======================================================
-
-// Login Administrador
 app.post('/api/admin/login', (req, res) => {
   const { usuario, password } = req.body;
   if (usuario === 'admin' && password === 'admin123') {
     return res.json({ message: 'Acceso concedido al administrador' });
   }
-  return res.status(401).json({ error: 'Usuario o contraseña de administrador incorrectos' });
+  return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
 });
 
-// Listar todas las tiendas
 app.get('/api/admin/tiendas', (req, res) => {
   return res.json(tiendas);
 });
 
-// Cambiar estado de una tienda (Activar / Desactivar)
 app.post('/api/admin/tiendas/:id/toggle', (req, res) => {
   const { id } = req.params;
   const tienda = tiendas.find(t => t.id == id);
@@ -152,10 +166,9 @@ app.post('/api/admin/tiendas/:id/toggle', (req, res) => {
   }
 
   tienda.activa = !tienda.activa;
-  return res.json({ message: `Tienda ${tienda.activa ? 'activada' : 'desactivada'} con éxito`, tienda });
+  return res.json({ message: `Tienda ${tienda.activa ? 'activada' : 'desactivada'}`, tienda });
 });
 
-// Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en el puerto ${PORT}`);
